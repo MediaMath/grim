@@ -1,0 +1,13 @@
+This is a simple build server that utilizes amazon services. 
+
+3rd Party Depedencies:
+
+golang
+BSD License
+https://golang.org/LICENSE
+https://github.com/andybons/hipchat (covered by MIT license found at https://github.com/andybons/hipchat/blob/master/LICENSE.txt)
+https://github.com/awslabs/aws-sdk-go (covered by Apache license found at https://github.com/awslabs/aws-sdk-go/blob/master/LICENSE.txt)
+https://github.com/google/go-github (covered by creative commons license found at https://github.com/google/go-github/blob/master/LICENSE) 
+https://github.com/google/go-querystring (covered by BSD license found at https://github.com/google/go-querystring/blob/master/LICENSE)
+https://github.com/vaughan0/go-ini (covered by MIT license found at https://github.com/vaughan0/go-ini/blob/master/LICENSE)
+

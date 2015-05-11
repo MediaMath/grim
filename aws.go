@@ -1,0 +1,26 @@
+package grim
+
+// Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+import (
+	"strings"
+
+	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws/credentials"
+)
+
+func getConfig(key, secret, region string) *aws.Config {
+	creds := credentials.NewStaticCredentials(key, secret, "")
+	return &aws.Config{Credentials: creds, Region: region}
+}
+
+func getAccountIDFromARN(arn string) string {
+	ps := strings.Split(arn, ":")
+	if len(ps) > 5 {
+		return ps[4]
+	}
+
+	return ""
+}
