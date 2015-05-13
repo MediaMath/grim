@@ -21,7 +21,7 @@ func build(configRoot, workspaceRoot, clonePath, owner, repo string, extraEnv []
 	}
 
 	buildScriptPath := findBuildScript(configRoot, workspacePath, clonePath, owner, repo)
-	if buildScriptPath != "" {
+	if buildScriptPath == "" {
 		return nil, fmt.Errorf("unable to find a build script to run; see README.md for more information")
 	}
 
