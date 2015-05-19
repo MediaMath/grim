@@ -55,6 +55,8 @@ func (i *Instance) PrepareRepos() error {
 
 	var topicARNs []string
 	for _, repo := range repos {
+		localConfig, err := getEffectiveConfig(configRoot, repo.owner, repo.name)
+		
 		snsTopicName := fmt.Sprintf("grim-%v-%v-repo-topic", repo.owner, repo.name)
 
 		snsTopicARN, err := prepareSNSTopic(config.awsKey, config.awsSecret, config.awsRegion, snsTopicName)
@@ -67,7 +69,7 @@ func (i *Instance) PrepareRepos() error {
 			return fatalGrimErrorf("error subscribing Grim queue %q to SNS topic %q: %v", i.queue.ARN, snsTopicARN, err)
 		}
 
-		err = prepareAmazonSNSService(config.gitHubToken, repo.owner, repo.name, snsTopicARN, config.awsKey, config.awsSecret, config.awsRegion)
+		err = prepareAmazonSNSService(localConfig.gitHubToken, repo.owner, repo.name, snsTopicARN, config.awsKey, config.awsSecret, config.awsRegion)
 		if err != nil {
 			return fatalGrimErrorf("error creating configuring GitHub AmazonSNS service: %v", err)
 		}
