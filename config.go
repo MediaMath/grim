@@ -4,6 +4,10 @@ package grim
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//TODO: add grim_server_id to config
+//check if it is present, if not present, use grim_queue_name
+//add the grim_server_id to message in message:grim_server_id/grim_queue_name
+
 import (
 	"encoding/json"
 	"fmt"
@@ -35,6 +39,7 @@ type config struct {
 	PathToCloneIn *string
 	HipChatRoom   *string
 	HipChatToken  *string
+	GrimServerID  *string
 }
 
 type effectiveConfig struct {
@@ -48,6 +53,7 @@ type effectiveConfig struct {
 	pathToCloneIn string
 	hipChatRoom   string
 	hipChatToken  string
+	grimServerID  string
 }
 
 type repo struct {
@@ -106,6 +112,7 @@ func getEffectiveGlobalConfig(configRoot string) (*effectiveConfig, error) {
 			gitHubToken:   firstNonEmptyStringPtr(global.GitHubToken),
 			hipChatRoom:   firstNonEmptyStringPtr(global.HipChatRoom),
 			hipChatToken:  firstNonEmptyStringPtr(global.HipChatToken),
+			grimServerID:  firstNonEmptyStringPtr(global.GrimServerID, &defaultGrimQueueName),
 		}
 
 		if err = validateEffectiveConfig(ec); err == nil {
@@ -133,6 +140,7 @@ func getEffectiveConfig(configRoot, owner, repo string) (*effectiveConfig, error
 				pathToCloneIn: firstNonEmptyStringPtr(local.PathToCloneIn),
 				hipChatRoom:   firstNonEmptyStringPtr(local.HipChatRoom, global.HipChatRoom),
 				hipChatToken:  firstNonEmptyStringPtr(local.HipChatToken, global.HipChatToken),
+				grimServerID:  firstNonEmptyStringPtr(global.GrimServerID, &defaultGrimQueueName),
 			}
 
 			if err = validateEffectiveConfig(ec); err == nil {
