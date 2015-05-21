@@ -203,9 +203,8 @@ func notify(config *effectiveConfig, hook hookEvent, state refStatus, message st
 		return nil
 	}
 
-	//add grimServerID/grimQueueName to hipchat message for test
-	message += "ServerID:" + config.grimServerID
-	fmt.Printf("The updated message is:", message)
+	//add grimServerID/grimQueueName to hipchat message
+	message += ":" + "ServerID/QueueName - " + config.grimServerID
 
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, state, "", message)
 
