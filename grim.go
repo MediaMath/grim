@@ -203,13 +203,8 @@ func notify(config *effectiveConfig, hook hookEvent, state refStatus, message st
 		return nil
 	}
 
-<<<<<<< HEAD
 	//add grimServerID/grimQueueName to hipchat message
 	message += ":" + "ServerID/QueueName - " + config.grimServerID
-=======
-	//add grimServerID/grimQueueName to message
-	message += "ServerID:" + config.grimServerID
->>>>>>> parent of 6bf5439... grim local test
 
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, state, "", message)
 
