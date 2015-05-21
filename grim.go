@@ -202,7 +202,7 @@ func notify(config *effectiveConfig, hook hookEvent, state refStatus, message st
 	}
 
 	//add grimServerID/grimQueueName to message
-	message += ":" + config.grimServerID
+	message += "ServerID:" + config.grimServerID
 
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, state, "", message)
 
