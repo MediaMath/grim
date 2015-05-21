@@ -56,7 +56,7 @@ func (i *Instance) PrepareRepos() error {
 	var topicARNs []string
 	for _, repo := range repos {
 		localConfig, err := getEffectiveConfig(configRoot, repo.owner, repo.name)
-		
+
 		snsTopicName := fmt.Sprintf("grim-%v-%v-repo-topic", repo.owner, repo.name)
 
 		snsTopicARN, err := prepareSNSTopic(config.awsKey, config.awsSecret, config.awsRegion, snsTopicName)
@@ -200,6 +200,9 @@ func notify(config *effectiveConfig, hook hookEvent, state refStatus, message st
 	if hook.eventName != "push" && hook.eventName != "pull_request" {
 		return nil
 	}
+
+	//add grimserverid/grimqueuename to message
+	message += ":" + config.grimServerID
 
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, state, "", message)
 
