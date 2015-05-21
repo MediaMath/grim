@@ -51,11 +51,16 @@ func (i *Instance) PrepareRepos() error {
 		return fatalGrimErrorf("error while reading config: %v", err)
 	}
 
+	fmt.Printf("Config root is: %v", configRoot)
+
 	repos := getAllConfiguredRepos(configRoot)
 
 	var topicARNs []string
 	for _, repo := range repos {
 		localConfig, err := getEffectiveConfig(configRoot, repo.owner, repo.name)
+		if err != nil {
+			return fatalGrimErrorf("error while reading local config: %v", err)
+		}
 
 		snsTopicName := fmt.Sprintf("grim-%v-%v-repo-topic", repo.owner, repo.name)
 
@@ -68,7 +73,6 @@ func (i *Instance) PrepareRepos() error {
 		if err != nil {
 			return fatalGrimErrorf("error subscribing Grim queue %q to SNS topic %q: %v", i.queue.ARN, snsTopicARN, err)
 		}
-
 		err = prepareAmazonSNSService(localConfig.gitHubToken, repo.owner, repo.name, snsTopicARN, config.awsKey, config.awsSecret, config.awsRegion)
 		if err != nil {
 			return fatalGrimErrorf("error creating configuring GitHub AmazonSNS service: %v", err)
@@ -78,7 +82,7 @@ func (i *Instance) PrepareRepos() error {
 
 	err = setPolicy(config.awsKey, config.awsSecret, config.awsRegion, i.queue.ARN, i.queue.URL, topicARNs)
 	if err != nil {
-		return fatalGrimErrorf("error setting policy for Grim queue: %v", err)
+		return fatalGrimErrorf("error setting policy for Grim queue %q with topics %v: %v", i.queue.ARN, topicARNs, err)
 	}
 
 	return nil
@@ -201,8 +205,9 @@ func notify(config *effectiveConfig, hook hookEvent, state refStatus, message st
 		return nil
 	}
 
-	//add grimServerID/grimQueueName to hipchat message test
+	//add grimServerID/grimQueueName to hipchat message
 	message += "ServerID:" + config.grimServerID
+	fmt.Printf("The message is:", message)
 
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, state, "", message)
 
