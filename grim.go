@@ -51,9 +51,8 @@ func (i *Instance) PrepareRepos() error {
 		return fatalGrimErrorf("error while reading config: %v", err)
 	}
 
-	fmt.Printf("Config root is: %v", configRoot)
-
 	repos := getAllConfiguredRepos(configRoot)
+	fmt.Println(repos)
 
 	var topicARNs []string
 	for _, repo := range repos {
