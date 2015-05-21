@@ -4,10 +4,6 @@ package grim
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//TODO: add grim_server_id to config
-//check if it is present, if not present, use grim_queue_name
-//add the grim_server_id to message in message:grim_server_id/grim_queue_name
-
 import (
 	"encoding/json"
 	"fmt"
