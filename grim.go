@@ -52,7 +52,6 @@ func (i *Instance) PrepareRepos() error {
 	}
 
 	repos := getAllConfiguredRepos(configRoot)
-	fmt.Println(repos)
 
 	var topicARNs []string
 	for _, repo := range repos {
