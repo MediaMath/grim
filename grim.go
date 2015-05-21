@@ -203,7 +203,7 @@ func notify(config *effectiveConfig, hook hookEvent, state refStatus, message st
 		return nil
 	}
 
-	//add grimServerID/grimQueueName to hipchat message
+	//add grimServerID/grimQueueName to hipchat message for test
 	message += "ServerID:" + config.grimServerID
 	fmt.Printf("The message is:", message)
 
