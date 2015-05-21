@@ -1,9 +1,11 @@
+//Package grim is the "GitHub Responder In MediaMath". We liked the acronym and awkwardly filled in the details to fit it. In short, it is a task runner that is triggered by GitHub push/pull request hooks that is intended as a much simpler and easy-to-use build server than the more modular alternatives (eg. Jenkins).
+//grim provides the library functions to support this use case.
+//grimd is a daemon process that uses the grim library.
 package grim
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-
 import "fmt"
 
 // Instance models the state of a configured Grim instance.
@@ -56,9 +58,6 @@ func (i *Instance) PrepareRepos() error {
 	var topicARNs []string
 	for _, repo := range repos {
 		localConfig, err := getEffectiveConfig(configRoot, repo.owner, repo.name)
-		if err != nil {
-			return fatalGrimErrorf("error while reading local config: %v", err)
-		}
 
 		snsTopicName := fmt.Sprintf("grim-%v-%v-repo-topic", repo.owner, repo.name)
 
