@@ -210,7 +210,7 @@ func deleteMessage(config *aws.Config, queueURL string, receiptHandle string) er
 
 	_, err := svc.DeleteMessage(params)
 	if awserr, ok := err.(awserr.Error); ok {
-		return fmt.Errorf("aws error while deleting message from SQS: %v %v", awserr.Code(), awserr.Message())
+		return fmt.Errorf("aws error while deleting message from SQS: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return fmt.Errorf("error while deleting message from SQS: %v", err)
 	}
