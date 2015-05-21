@@ -70,7 +70,6 @@ func (i *Instance) PrepareRepos() error {
 		if err != nil {
 			return fatalGrimErrorf("error subscribing Grim queue %q to SNS topic %q: %v", i.queue.ARN, snsTopicARN, err)
 		}
-
 		err = prepareAmazonSNSService(localConfig.gitHubToken, repo.owner, repo.name, snsTopicARN, config.awsKey, config.awsSecret, config.awsRegion)
 		if err != nil {
 			return fatalGrimErrorf("error creating configuring GitHub AmazonSNS service: %v", err)
@@ -80,7 +79,7 @@ func (i *Instance) PrepareRepos() error {
 
 	err = setPolicy(config.awsKey, config.awsSecret, config.awsRegion, i.queue.ARN, i.queue.URL, topicARNs)
 	if err != nil {
-		return fatalGrimErrorf("error setting policy for Grim queue: %v", err)
+		return fatalGrimErrorf("error setting policy for Grim queue %q with topics %v: %v", i.queue.ARN, topicARNs, err)
 	}
 
 	return nil
@@ -202,6 +201,9 @@ func notify(config *effectiveConfig, hook hookEvent, state refStatus, message st
 	if hook.eventName != "push" && hook.eventName != "pull_request" {
 		return nil
 	}
+
+	//add grimServerID/grimQueueName to hipchat message
+	message += ":" + "ServerID/QueueName - " + config.grimServerID
 
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, state, "", message)
 
