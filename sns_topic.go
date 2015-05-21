@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws/awserr"
 	"github.com/awslabs/aws-sdk-go/service/sns"
 )
 
@@ -56,7 +57,7 @@ func createSubscription(config *aws.Config, topicARN, queueARN string) (string, 
 	}
 
 	resp, err := svc.Subscribe(params)
-	if awserr := aws.Error(err); awserr != nil {
+	if awserr, ok := err.(awserr.Error); ok {
 		return "", fmt.Errorf("aws error while creating subscription to SNS topic: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return "", fmt.Errorf("error while creating subscription to SNS topic: %v", err)
@@ -76,7 +77,7 @@ func findSubscription(config *aws.Config, topicARN, queueARN string) (string, er
 
 	for {
 		resp, err := svc.ListSubscriptionsByTopic(params)
-		if awserr := aws.Error(err); awserr != nil {
+		if awserr, ok := err.(awserr.Error); ok {
 			return "", fmt.Errorf("aws error while listing subscriptions to SNS topic: %v %v", awserr.Code, awserr.Message)
 		} else if err != nil {
 			return "", fmt.Errorf("error while listing subscriptions to SNS topic: %v", err)
@@ -108,7 +109,7 @@ func createTopic(config *aws.Config, topic string) (string, error) {
 	}
 
 	resp, err := svc.CreateTopic(params)
-	if awserr := aws.Error(err); awserr != nil {
+	if awserr, ok := err.(awserr.Error); ok {
 		return "", fmt.Errorf("aws error while creating SNS topic: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return "", fmt.Errorf("error while creating SNS topic: %v", err)
@@ -128,7 +129,7 @@ func findExistingTopicARN(config *aws.Config, topic string) (string, error) {
 
 	for {
 		resp, err := svc.ListTopics(params)
-		if awserr := aws.Error(err); awserr != nil {
+		if awserr, ok := err.(awserr.Error); ok {
 			return "", fmt.Errorf("aws error while listing SNS topics: %v %v", awserr.Code, awserr.Message)
 		} else if err != nil {
 			return "", fmt.Errorf("error while listing SNS topics: %v", err)

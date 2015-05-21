@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws/awserr"
 	"github.com/awslabs/aws-sdk-go/service/sqs"
 )
 
@@ -98,7 +99,7 @@ func setPolicy(key, secret, region, queueARN, queueURL string, topicARNs []strin
 	}
 
 	_, err = svc.SetQueueAttributes(params)
-	if awserr := aws.Error(err); awserr != nil {
+	if awserr, ok := err.(awserr.Error); ok {
 		return fmt.Errorf("aws error while setting policy for SQS queue: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return fmt.Errorf("error while setting policy for SQS queue: %v", err)
@@ -115,7 +116,7 @@ func getQueueURLByName(config *aws.Config, queue string) (string, error) {
 	}
 
 	resp, err := svc.GetQueueURL(params)
-	if awserr := aws.Error(err); awserr != nil {
+	if awserr, ok := err.(awserr.Error); ok {
 		return "", fmt.Errorf("aws error while getting URL for SQS queue: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return "", fmt.Errorf("error while getting URL for SQS queue: %v", err)
@@ -139,7 +140,7 @@ func getARNForQueueURL(config *aws.Config, queueURL string) (string, error) {
 	}
 
 	resp, err := svc.GetQueueAttributes(params)
-	if awserr := aws.Error(err); awserr != nil {
+	if awserr, ok := err.(awserr.Error); ok {
 		return "", fmt.Errorf("aws error while getting ARN for SQS queue: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return "", fmt.Errorf("error while getting ARN for SQS queue: %v", err)
@@ -168,7 +169,7 @@ func createQueue(config *aws.Config, queue string) (string, error) {
 	}
 
 	resp, err := svc.CreateQueue(params)
-	if awserr := aws.Error(err); awserr != nil {
+	if awserr, ok := err.(awserr.Error); ok {
 		return "", fmt.Errorf("aws error while creating SQS queue: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return "", fmt.Errorf("error while creating SQS queue: %v", err)
@@ -188,7 +189,7 @@ func getMessage(config *aws.Config, queueURL string) (*sqs.Message, error) {
 	}
 
 	resp, err := svc.ReceiveMessage(params)
-	if awserr := aws.Error(err); awserr != nil {
+	if awserr, ok := err.(awserr.Error); ok {
 		return nil, fmt.Errorf("aws error while receiving message from SQS: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return nil, fmt.Errorf("error while receiving message from SQS: %v", err)
@@ -208,7 +209,7 @@ func deleteMessage(config *aws.Config, queueURL string, receiptHandle string) er
 	}
 
 	_, err := svc.DeleteMessage(params)
-	if awserr := aws.Error(err); awserr != nil {
+	if awserr, ok := err.(awserr.Error); ok {
 		return fmt.Errorf("aws error while deleting message from SQS: %v %v", awserr.Code, awserr.Message)
 	} else if err != nil {
 		return fmt.Errorf("error while deleting message from SQS: %v", err)
