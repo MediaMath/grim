@@ -1,4 +1,4 @@
-#Grim: "No It Doesn't Do That"
+#Grim: Dead simple build server 
 
 Grim is the "GitHub Responder In MediaMath".  We liked the acronym and awkwardly filled in the details to fit it.  In short, it is a task runner that is triggered by GitHub push/pull request hooks that is intended as a much simpler and easy-to-use build server than the more modular alternatives (eg. Jenkins).
 
