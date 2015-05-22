@@ -5,6 +5,61 @@ import "testing"
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+func TestGlobalEffectiveFailureTemplate(t *testing.T) {
+	global := &config{FailureTemplate: s("template")}
+
+	if ec := buildGlobalEffectiveConfig(global); ec.failureTemplate != "template" {
+		t.Errorf("Did not set effective correctly %v", ec)
+	}
+
+	none := &config{}
+
+	if ec := buildGlobalEffectiveConfig(none); ec.failureTemplate != ps(templateFor("Failure during")) {
+		t.Errorf("No defaulting %v", ec)
+	}
+}
+
+func TestGlobalEffectiveSuccessTemplate(t *testing.T) {
+	global := &config{SuccessTemplate: s("template")}
+
+	if ec := buildGlobalEffectiveConfig(global); ec.successTemplate != "template" {
+		t.Errorf("Did not set effective correctly %v", ec)
+	}
+
+	none := &config{}
+
+	if ec := buildGlobalEffectiveConfig(none); ec.successTemplate != ps(templateFor("Success after")) {
+		t.Errorf("No defaulting %v", ec)
+	}
+}
+
+func TestGlobalEffectiveErrorTemplate(t *testing.T) {
+	global := &config{ErrorTemplate: s("template")}
+
+	if ec := buildGlobalEffectiveConfig(global); ec.errorTemplate != "template" {
+		t.Errorf("Did not set effective correctly %v", ec)
+	}
+
+	none := &config{}
+
+	if ec := buildGlobalEffectiveConfig(none); ec.errorTemplate != ps(templateFor("Error during")) {
+		t.Errorf("No defaulting %v", ec)
+	}
+}
+
+func TestGlobalEffectivePendingTemplate(t *testing.T) {
+	global := &config{PendingTemplate: s("template")}
+
+	if ec := buildGlobalEffectiveConfig(global); ec.pendingTemplate != "template" {
+		t.Errorf("Did not set effective correctly %v", ec)
+	}
+
+	none := &config{}
+
+	if ec := buildGlobalEffectiveConfig(none); ec.pendingTemplate != ps(templateFor("Starting")) {
+		t.Errorf("No defaulting %v", ec)
+	}
+}
 
 func TestGlobalEffectiveGrimServerId(t *testing.T) {
 	global := &config{GrimServerID: s("id")}
@@ -114,26 +169,42 @@ func TestLocalEffectiveConfigPathIsNotGlobal(t *testing.T) {
 
 func TestLocalEffectiveConfigDoesOverwriteGlobals(t *testing.T) {
 	global := effectiveConfig{
-		gitHubToken:   "global",
-		pathToCloneIn: "global",
-		hipChatRoom:   "global",
-		hipChatToken:  "global"}
+		pendingTemplate: "global",
+		errorTemplate:   "global",
+		successTemplate: "global",
+		failureTemplate: "global",
+		gitHubToken:     "global",
+		pathToCloneIn:   "global",
+		hipChatRoom:     "global",
+		hipChatToken:    "global"}
 
 	has := config{
-		GitHubToken:   s("local"),
-		PathToCloneIn: s("local"),
-		HipChatRoom:   s("local"),
-		HipChatToken:  s("local")}
+		PendingTemplate: s("local"),
+		ErrorTemplate:   s("local"),
+		SuccessTemplate: s("local"),
+		FailureTemplate: s("local"),
+		GitHubToken:     s("local"),
+		PathToCloneIn:   s("local"),
+		HipChatRoom:     s("local"),
+		HipChatToken:    s("local")}
 
 	none := config{}
 
 	if ec := buildLocalEffectiveConfig(global, &has); ec.gitHubToken != "local" ||
+		ec.pendingTemplate != "local" ||
+		ec.errorTemplate != "local" ||
+		ec.successTemplate != "local" ||
+		ec.failureTemplate != "local" ||
 		ec.hipChatRoom != "local" ||
 		ec.hipChatToken != "local" {
 		t.Errorf("local did not overwrite global %v", ec)
 	}
 
 	if ec := buildLocalEffectiveConfig(global, &none); ec.gitHubToken != "global" ||
+		ec.pendingTemplate != "global" ||
+		ec.errorTemplate != "global" ||
+		ec.successTemplate != "global" ||
+		ec.failureTemplate != "global" ||
 		ec.hipChatRoom != "global" ||
 		ec.hipChatToken != "global" {
 		t.Errorf("global does not back stop local %v", ec)

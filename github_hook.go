@@ -25,6 +25,10 @@ type hookEvent struct {
 	prNumber  int64
 }
 
+func (hook hookEvent) Describe() string {
+	return fmt.Sprintf("hook of %v/%v initiated by a %q to %q by %q", hook.owner, hook.repo, hook.eventName, hook.target, hook.userName)
+}
+
 func (hook hookEvent) env() []string {
 	return []string{
 		fmt.Sprintf("GH_EVENT_NAME=%v", hook.eventName),
