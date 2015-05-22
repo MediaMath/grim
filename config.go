@@ -98,18 +98,7 @@ func getEffectiveGlobalConfig(configRoot string) (*effectiveConfig, error) {
 	var global *config
 
 	if global, err = loadGlobalConfig(configRoot); err == nil {
-		ec := effectiveConfig{
-			grimQueueName: firstNonEmptyStringPtr(global.GrimQueueName, &defaultGrimQueueName),
-			resultRoot:    firstNonEmptyStringPtr(global.ResultRoot, &defaultResultRoot),
-			workspaceRoot: firstNonEmptyStringPtr(global.WorkspaceRoot, &defaultWorkspaceRoot),
-			awsRegion:     firstNonEmptyStringPtr(global.AWSRegion),
-			awsKey:        firstNonEmptyStringPtr(global.AWSKey),
-			awsSecret:     firstNonEmptyStringPtr(global.AWSSecret),
-			gitHubToken:   firstNonEmptyStringPtr(global.GitHubToken),
-			hipChatRoom:   firstNonEmptyStringPtr(global.HipChatRoom),
-			hipChatToken:  firstNonEmptyStringPtr(global.HipChatToken),
-			grimServerID:  firstNonEmptyStringPtr(global.GrimServerID, &defaultGrimQueueName),
-		}
+		ec := buildGlobalEffectiveConfig(global)
 
 		if err = validateEffectiveConfig(ec); err == nil {
 			return &ec, nil
@@ -125,19 +114,7 @@ func getEffectiveConfig(configRoot, owner, repo string) (*effectiveConfig, error
 
 	if global, err = loadGlobalConfig(configRoot); err == nil {
 		if local, err = loadLocalConfig(configRoot, owner, repo); err == nil {
-			ec := effectiveConfig{
-				grimQueueName: firstNonEmptyStringPtr(global.GrimQueueName, &defaultGrimQueueName),
-				resultRoot:    firstNonEmptyStringPtr(global.ResultRoot, &defaultResultRoot),
-				workspaceRoot: firstNonEmptyStringPtr(global.WorkspaceRoot, &defaultWorkspaceRoot),
-				awsRegion:     firstNonEmptyStringPtr(global.AWSRegion),
-				awsKey:        firstNonEmptyStringPtr(global.AWSKey),
-				awsSecret:     firstNonEmptyStringPtr(global.AWSSecret),
-				gitHubToken:   firstNonEmptyStringPtr(local.GitHubToken, global.GitHubToken),
-				pathToCloneIn: firstNonEmptyStringPtr(local.PathToCloneIn),
-				hipChatRoom:   firstNonEmptyStringPtr(local.HipChatRoom, global.HipChatRoom),
-				hipChatToken:  firstNonEmptyStringPtr(local.HipChatToken, global.HipChatToken),
-				grimServerID:  firstNonEmptyStringPtr(global.GrimServerID, &defaultGrimQueueName),
-			}
+			ec := buildLocalEffectiveConfig(buildGlobalEffectiveConfig(global), local)
 
 			if err = validateEffectiveConfig(ec); err == nil {
 				return &ec, nil
@@ -146,6 +123,37 @@ func getEffectiveConfig(configRoot, owner, repo string) (*effectiveConfig, error
 	}
 
 	return nil, err
+}
+
+func buildGlobalEffectiveConfig(global *config) effectiveConfig {
+	return effectiveConfig{
+		grimQueueName: firstNonEmptyStringPtr(global.GrimQueueName, &defaultGrimQueueName),
+		resultRoot:    firstNonEmptyStringPtr(global.ResultRoot, &defaultResultRoot),
+		workspaceRoot: firstNonEmptyStringPtr(global.WorkspaceRoot, &defaultWorkspaceRoot),
+		grimServerID:  firstNonEmptyStringPtr(global.GrimServerID, global.GrimQueueName, &defaultGrimQueueName),
+		awsRegion:     firstNonEmptyStringPtr(global.AWSRegion),
+		awsKey:        firstNonEmptyStringPtr(global.AWSKey),
+		awsSecret:     firstNonEmptyStringPtr(global.AWSSecret),
+		gitHubToken:   firstNonEmptyStringPtr(global.GitHubToken),
+		hipChatRoom:   firstNonEmptyStringPtr(global.HipChatRoom),
+		hipChatToken:  firstNonEmptyStringPtr(global.HipChatToken),
+	}
+}
+
+func buildLocalEffectiveConfig(global effectiveConfig, local *config) effectiveConfig {
+	return effectiveConfig{
+		grimQueueName: global.grimQueueName,
+		resultRoot:    global.resultRoot,
+		workspaceRoot: global.workspaceRoot,
+		awsRegion:     global.awsRegion,
+		awsKey:        global.awsKey,
+		awsSecret:     global.awsSecret,
+		grimServerID:  global.grimServerID,
+		gitHubToken:   firstNonEmptyStringPtr(local.GitHubToken, &global.gitHubToken),
+		pathToCloneIn: firstNonEmptyStringPtr(local.PathToCloneIn),
+		hipChatRoom:   firstNonEmptyStringPtr(local.HipChatRoom, &global.hipChatRoom),
+		hipChatToken:  firstNonEmptyStringPtr(local.HipChatToken, &global.hipChatToken),
+	}
 }
 
 func validateEffectiveConfig(ec effectiveConfig) error {
