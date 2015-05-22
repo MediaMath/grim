@@ -7,6 +7,7 @@ import "testing"
 // license that can be found in the LICENSE file.
 
 func TestGlobalEffectiveGrimServerId(t *testing.T) {
+	t.Errorf("fail")
 	global := &config{GrimServerID: s("id")}
 
 	if ec := buildGlobalEffectiveConfig(global); ec.grimServerID != "id" {
