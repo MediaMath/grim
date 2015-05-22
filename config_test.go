@@ -202,7 +202,7 @@ func TestLoadGlobalConfig(t *testing.T) {
 	}
 
 	if ps(config.GrimServerID) != "def-serverid" {
-		t.Errorf("Didn't match:\n%s", config)
+		t.Errorf("Didn't match:\n%v", config)
 	}
 }
 
@@ -213,7 +213,7 @@ func TestLoadRepoConfig(t *testing.T) {
 	}
 
 	if ps(config.PathToCloneIn) != "go/src/github.com/MediaMath/foo" {
-		t.Errorf("Didn't match:\n%s", config)
+		t.Errorf("Didn't match:\n%v", config)
 	}
 }
 
