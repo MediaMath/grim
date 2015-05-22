@@ -202,13 +202,10 @@ func notify(config *effectiveConfig, hook hookEvent, state refStatus, message st
 		return nil
 	}
 
-	//add grimServerID/grimQueueName to hipchat message
-	message += ":" + "ServerID/QueueName - " + config.grimServerID
-
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, state, "", message)
 
 	if config.hipChatToken != "" && config.hipChatRoom != "" {
-		err := sendMessageToRoom(config.hipChatToken, config.hipChatRoom, "Grim", message, color)
+		err := sendMessageToRoom(config.hipChatToken, config.hipChatRoom, config.grimServerID, message, color)
 		if err != nil {
 			return err
 		}
