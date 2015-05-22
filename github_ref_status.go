@@ -10,25 +10,25 @@ import (
 	"github.com/google/go-github/github"
 )
 
-type refStatus string
+type refStatusState string
 
 // These statuses model the statuses mentioned here: https://developer.github.com/v3/repos/statuses/#create-a-status
 const (
-	RSPending refStatus = "pending"
-	RSSuccess refStatus = "success"
-	RSError   refStatus = "error"
-	RSFailure refStatus = "failure"
+	RSPending refStatusState = "pending"
+	RSSuccess refStatusState = "success"
+	RSError   refStatusState = "error"
+	RSFailure refStatusState = "failure"
 )
 
-func setRefStatus(token, owner, repo, ref string, state refStatus, statusURL string, description string) error {
+func setRefStatus(token, owner, repo, ref string, state refStatusState, statusURL string, description string) error {
 	client, err := getClientForToken(token)
 	if err != nil {
 		return err
 	}
 
 	stateStr := string(state)
-	repoStatusBefore := github.RepoStatus{State: &stateStr, TargetURL: &statusURL, Description: &description}
-	repoStatus, res, err := client.Repositories.CreateStatus(owner, repo, ref, &repoStatusBefore)
+	statusBefore := &github.RepoStatus{State: &stateStr, TargetURL: &statusURL, Description: &description}
+	repoStatus, res, err := client.Repositories.CreateStatus(owner, repo, ref, statusBefore)
 	if err != nil {
 		return err
 	}

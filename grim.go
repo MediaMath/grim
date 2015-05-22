@@ -154,19 +154,19 @@ func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) er
 	extraEnv := hook.env()
 
 	// TODO: do something with the err
-	notifyPending(config, hook)
+	notify(config, hook, GrimPending)
 
 	result, err := build(configRoot, config.workspaceRoot, config.pathToCloneIn, hook.owner, hook.repo, extraEnv)
 	if err != nil {
-		notifyError(config, hook)
-		return fatalGrimErrorf("error during %v: %v", describeHook(hook), err)
+		notify(config, hook, GrimError)
+		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
 	}
 
 	var notifyError error
 	if result.ExitCode == 0 {
-		notifyError = notifySuccess(config, hook)
+		notifyError = notify(config, hook, GrimSuccess)
 	} else {
-		notifyError = notifyFailure(config, hook)
+		notifyError = notify(config, hook, GrimFailure)
 	}
 
 	err = appendResult(config.resultRoot, hook.owner, hook.repo, *result)
@@ -175,43 +175,6 @@ func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) er
 	}
 
 	return notifyError
-}
-
-func describeHook(hook hookEvent) string {
-	return fmt.Sprintf("build of %v/%v initiated by a %q to %q by %q", hook.owner, hook.repo, hook.eventName, hook.target, hook.userName)
-}
-
-func notifyPending(config *effectiveConfig, hook hookEvent) error {
-	return notify(config, hook, RSPending, fmt.Sprintf("Starting %v", describeHook(hook)), ColorYellow)
-}
-
-func notifyError(config *effectiveConfig, hook hookEvent) error {
-	return notify(config, hook, RSError, fmt.Sprintf("Error during %v", describeHook(hook)), ColorGray)
-}
-
-func notifyFailure(config *effectiveConfig, hook hookEvent) error {
-	return notify(config, hook, RSFailure, fmt.Sprintf("Failure during %v", describeHook(hook)), ColorRed)
-}
-
-func notifySuccess(config *effectiveConfig, hook hookEvent) error {
-	return notify(config, hook, RSSuccess, fmt.Sprintf("Success after %v", describeHook(hook)), ColorGreen)
-}
-
-func notify(config *effectiveConfig, hook hookEvent, state refStatus, message string, color messageColor) error {
-	if hook.eventName != "push" && hook.eventName != "pull_request" {
-		return nil
-	}
-
-	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, state, "", message)
-
-	if config.hipChatToken != "" && config.hipChatRoom != "" {
-		err := sendMessageToRoom(config.hipChatToken, config.hipChatRoom, config.grimServerID, message, color)
-		if err != nil {
-			return err
-		}
-	}
-
-	return ghErr
 }
 
 func (i *Instance) checkGrimQueue() error {

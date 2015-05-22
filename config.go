@@ -25,31 +25,39 @@ var (
 )
 
 type config struct {
-	GrimQueueName *string
-	ResultRoot    *string
-	WorkspaceRoot *string
-	AWSRegion     *string
-	AWSKey        *string
-	AWSSecret     *string
-	GitHubToken   *string
-	PathToCloneIn *string
-	HipChatRoom   *string
-	HipChatToken  *string
-	GrimServerID  *string
+	GrimQueueName   *string
+	ResultRoot      *string
+	WorkspaceRoot   *string
+	AWSRegion       *string
+	AWSKey          *string
+	AWSSecret       *string
+	GitHubToken     *string
+	PathToCloneIn   *string
+	HipChatRoom     *string
+	HipChatToken    *string
+	GrimServerID    *string
+	PendingTemplate *string
+	ErrorTemplate   *string
+	SuccessTemplate *string
+	FailureTemplate *string
 }
 
 type effectiveConfig struct {
-	grimQueueName string
-	resultRoot    string
-	workspaceRoot string
-	awsRegion     string
-	awsKey        string
-	awsSecret     string
-	gitHubToken   string
-	pathToCloneIn string
-	hipChatRoom   string
-	hipChatToken  string
-	grimServerID  string
+	grimQueueName   string
+	resultRoot      string
+	workspaceRoot   string
+	awsRegion       string
+	awsKey          string
+	awsSecret       string
+	gitHubToken     string
+	pathToCloneIn   string
+	hipChatRoom     string
+	hipChatToken    string
+	grimServerID    string
+	pendingTemplate string
+	errorTemplate   string
+	successTemplate string
+	failureTemplate string
 }
 
 type repo struct {
@@ -127,33 +135,46 @@ func getEffectiveConfig(configRoot, owner, repo string) (*effectiveConfig, error
 
 func buildGlobalEffectiveConfig(global *config) effectiveConfig {
 	return effectiveConfig{
-		grimQueueName: firstNonEmptyStringPtr(global.GrimQueueName, &defaultGrimQueueName),
-		resultRoot:    firstNonEmptyStringPtr(global.ResultRoot, &defaultResultRoot),
-		workspaceRoot: firstNonEmptyStringPtr(global.WorkspaceRoot, &defaultWorkspaceRoot),
-		grimServerID:  firstNonEmptyStringPtr(global.GrimServerID, global.GrimQueueName, &defaultGrimQueueName),
-		awsRegion:     firstNonEmptyStringPtr(global.AWSRegion),
-		awsKey:        firstNonEmptyStringPtr(global.AWSKey),
-		awsSecret:     firstNonEmptyStringPtr(global.AWSSecret),
-		gitHubToken:   firstNonEmptyStringPtr(global.GitHubToken),
-		hipChatRoom:   firstNonEmptyStringPtr(global.HipChatRoom),
-		hipChatToken:  firstNonEmptyStringPtr(global.HipChatToken),
+		grimQueueName:   firstNonEmptyStringPtr(global.GrimQueueName, &defaultGrimQueueName),
+		resultRoot:      firstNonEmptyStringPtr(global.ResultRoot, &defaultResultRoot),
+		workspaceRoot:   firstNonEmptyStringPtr(global.WorkspaceRoot, &defaultWorkspaceRoot),
+		grimServerID:    firstNonEmptyStringPtr(global.GrimServerID, global.GrimQueueName, &defaultGrimQueueName),
+		awsRegion:       firstNonEmptyStringPtr(global.AWSRegion),
+		awsKey:          firstNonEmptyStringPtr(global.AWSKey),
+		awsSecret:       firstNonEmptyStringPtr(global.AWSSecret),
+		gitHubToken:     firstNonEmptyStringPtr(global.GitHubToken),
+		hipChatRoom:     firstNonEmptyStringPtr(global.HipChatRoom),
+		hipChatToken:    firstNonEmptyStringPtr(global.HipChatToken),
+		pendingTemplate: firstNonEmptyStringPtr(global.PendingTemplate, templateFor("Starting")),
+		errorTemplate:   firstNonEmptyStringPtr(global.ErrorTemplate, templateFor("Error during")),
+		failureTemplate: firstNonEmptyStringPtr(global.FailureTemplate, templateFor("Failure during")),
+		successTemplate: firstNonEmptyStringPtr(global.SuccessTemplate, templateFor("Success after")),
 	}
 }
 
 func buildLocalEffectiveConfig(global effectiveConfig, local *config) effectiveConfig {
 	return effectiveConfig{
-		grimQueueName: global.grimQueueName,
-		resultRoot:    global.resultRoot,
-		workspaceRoot: global.workspaceRoot,
-		awsRegion:     global.awsRegion,
-		awsKey:        global.awsKey,
-		awsSecret:     global.awsSecret,
-		grimServerID:  global.grimServerID,
-		gitHubToken:   firstNonEmptyStringPtr(local.GitHubToken, &global.gitHubToken),
-		pathToCloneIn: firstNonEmptyStringPtr(local.PathToCloneIn),
-		hipChatRoom:   firstNonEmptyStringPtr(local.HipChatRoom, &global.hipChatRoom),
-		hipChatToken:  firstNonEmptyStringPtr(local.HipChatToken, &global.hipChatToken),
+		grimQueueName:   global.grimQueueName,
+		resultRoot:      global.resultRoot,
+		workspaceRoot:   global.workspaceRoot,
+		awsRegion:       global.awsRegion,
+		awsKey:          global.awsKey,
+		awsSecret:       global.awsSecret,
+		grimServerID:    global.grimServerID,
+		gitHubToken:     firstNonEmptyStringPtr(local.GitHubToken, &global.gitHubToken),
+		pathToCloneIn:   firstNonEmptyStringPtr(local.PathToCloneIn),
+		hipChatRoom:     firstNonEmptyStringPtr(local.HipChatRoom, &global.hipChatRoom),
+		hipChatToken:    firstNonEmptyStringPtr(local.HipChatToken, &global.hipChatToken),
+		pendingTemplate: firstNonEmptyStringPtr(local.PendingTemplate, &global.pendingTemplate),
+		successTemplate: firstNonEmptyStringPtr(local.SuccessTemplate, &global.successTemplate),
+		errorTemplate:   firstNonEmptyStringPtr(local.ErrorTemplate, &global.errorTemplate),
+		failureTemplate: firstNonEmptyStringPtr(local.FailureTemplate, &global.failureTemplate),
 	}
+}
+
+func templateFor(preamble string) *string {
+	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}}", preamble)
+	return &s
 }
 
 func validateEffectiveConfig(ec effectiveConfig) error {
