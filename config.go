@@ -173,7 +173,7 @@ func buildLocalEffectiveConfig(global effectiveConfig, local *config) effectiveC
 }
 
 func templateFor(preamble string) *string {
-	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}}", preamble)
+	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.Workspace}})", preamble)
 	return &s
 }
 
