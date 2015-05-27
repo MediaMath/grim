@@ -14,5 +14,5 @@ go get github.com/golang/lint/golint
 make clean check grimd
 
 if [ "$GH_EVENT_NAME" == "push" -a "$GH_TARGET" == "master" ]; then
-	REPOSITORY=libs-release-local make publish
+	REPOSITORY=libs-release-global make publish
 fi
