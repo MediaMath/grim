@@ -24,11 +24,7 @@ Each GitHub repo can push to exactly one SNS topic.  Multiple SQS queues can sub
 wget https://artifactory.mediamath.com/artifactory/libs-release-global/com/mediamath/grim/grimd/[RELEASE]/grimd-[RELEASE].zip
 ```
 
-### 2. Give grimd user the ability to clone from the github repos you are interested in.
-
-The user that is running your installed grimd process needs to be able to clone the github repos it is responding to.  To that end it will need to be able to run git and should have access to the github repos (either via private key, or because they are all public).
-
-### 3. Global Configuration
+### 2. Global Configuration
 
 Grim tries to honor the conventional [Unix filesystem hierarchy](http://en.wikipedia.org/wiki/Unix_filesystem#Conventional_directory_layout) as much as possible.  Configuration files are by default found in `/etc/grim`.  You may override that default by specifying `--config-root [some dir]`, more briefly `-c [some dir]` or by setting the `GRIM_CONFIG_ROOT` environment variable.  Inside that directory there is expected to be a `config.json` that specifies the other paths used as well as global defaults.  Here is an example:
 
@@ -51,37 +47,9 @@ If you don't configure `GrimQueueName`, `ResultRoot` or `WorkspaceRoot` Grim wil
 
 * `write:repo_hook` to be able to create/edit repository hooks
 * `repo:status` to be able set commit statuses
+* `repo` to be able to download the repo
 
-#### Prepare.sh
-
-There is also expected to be an executable script in the configuration root called `prepare.sh` that will take clones a repository in a path and checks out a ref:
-
-```bash
-#!/bin/bash
-
-env | sort > ~/grimd.log
-
-set -eu
-
-FULL_CLONE_PATH=$(pwd)"/$CLONE_PATH"
-mkdir -p "$FULL_CLONE_PATH"
-
-git clone "ssh://git@github.com/$GH_OWNER/$GH_REPO.git" "$FULL_CLONE_PATH"
-cd "$FULL_CLONE_PATH"
-
-if [ "$GH_EVENT_NAME" == "pull_request" ]; then
-	git fetch origin "refs/pull/$GH_PR_NUMBER/head:pull_branch"
-	git checkout pull_branch
-else
-	git checkout "$GH_REF"
-fi
-```
-
-It will be run with its working directory being the workspace that was created for this build.  You can also override the global prepare script by placing a `prepare.sh` in the configuration directory for a specific repo.
-
-The environment variables available to this script are documented [here](#environment-variables).
-
-### 4. Repository Configuration
+### 3. Repository Configuration
 
 In order for Grim to respond to GitHub events it needs subdirectories to be made in the configuration root.  Inside those subdirectories should be a `config.json` and optionally a `build.sh`.  Here is an example directory structure:
 
@@ -115,7 +83,7 @@ The environment variables available to this script are documented [here](#enviro
 
 ### Environment Variables 
 ```
-CLONE_PATH= the path relative to the workspace to clone the repo in
+CLONE_PATH= the path relative to the workspace the repo is cloned in 
 GH_EVENT_NAME= either 'push', 'pull_request' or '' (for manual builds)
 GH_ACTION= the sub action of a pull request (eg. 'opened', 'closed', or 'reopened', 'synchronize') or blank for other event types
 GH_USER_NAME= the user initiating the event
