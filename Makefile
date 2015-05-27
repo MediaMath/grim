@@ -26,7 +26,7 @@ grimd:
 	go build $(LDFLAGS) -o $(GOPATH)/bin/grimd ./grimd
 
 tmp/grimd-$(VERSION).zip: grimd | tmp 
-	zip -r -j $@ $(GOPATH)/bin/grimd prepare.sh
+	zip -r -j $@ $(GOPATH)/bin/grimd
 
 test:
 	go test -short $(TEST_VERBOSITY) ./...
