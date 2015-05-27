@@ -14,7 +14,9 @@ var testContext = &grimNotificationContext{
 	Repo:      "spain",
 	EventName: "falls",
 	Target:    "plain",
-	UserName:  "mainly"}
+	UserName:  "mainly",
+	Workspace: "boogey/nights",
+}
 
 var testConfig = &effectiveConfig{
 	pendingTemplate: "pending {{.Owner}}",
@@ -65,13 +67,13 @@ func compareNotification(n *standardGrimNotification, state refStatusState, colo
 
 func TestContextRender(t *testing.T) {
 
-	str, err := testContext.render("The {{.Owner}} in {{.Repo}} {{.EventName}} {{.UserName}} on the {{.Target}} boyeeeee!")
+	str, err := testContext.render("The {{.Owner}} in {{.Repo}} {{.EventName}} {{.UserName}} on the {{.Target}} {{.Workspace}}!")
 
 	if err != nil {
 		t.Errorf("error %v", err)
 	}
 
-	if str != "The rain in spain falls mainly on the plain boyeeeee!" {
+	if str != "The rain in spain falls mainly on the plain boogey/nights!" {
 		t.Errorf("Didn't match %v", str)
 	}
 }

@@ -10,31 +10,31 @@ import (
 	"path/filepath"
 )
 
-func build(configRoot, workspaceRoot, clonePath, owner, repo string, extraEnv []string) (*executeResult, error) {
+func build(configRoot, workspaceRoot, clonePath, owner, repo string, extraEnv []string) (*executeResult, string, error) {
 	env := os.Environ()
 	env = append(env, fmt.Sprintf("CLONE_PATH=%v", clonePath))
 	env = append(env, extraEnv...)
 
 	workspacePath, err := prepareWorkspace(configRoot, workspaceRoot, owner, repo, env)
 	if err != nil {
-		return nil, fmt.Errorf("failed to prepare workspace: %v", err)
+		return nil, workspacePath, fmt.Errorf("failed to prepare workspace: %v", err)
 	}
 
 	buildScriptPath := findBuildScript(configRoot, workspacePath, clonePath, owner, repo)
 	if buildScriptPath == "" {
-		return nil, fmt.Errorf("unable to find a build script to run; see README.md for more information")
+		return nil, workspacePath, fmt.Errorf("unable to find a build script to run; see README.md for more information")
 	}
 
 	result, err := execute(buildScriptPath, workspacePath, env)
 	if err != nil {
-		return nil, err
+		return nil, workspacePath, err
 	}
 
 	if result.ExitCode == 0 {
 		os.RemoveAll(workspacePath)
 	}
 
-	return result, nil
+	return result, workspacePath, nil
 }
 
 func findBuildScript(configRoot, workspacePath, clonePath, owner, repo string) string {
