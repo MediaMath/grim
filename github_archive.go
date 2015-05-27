@@ -2,46 +2,84 @@ package grim
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
+	"mime"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-
-func getRepoArchive(token, location, owner, repo, ref string) (string, error) {
-	downloadedName := filepath.Join(location, fmt.Sprintf("%s-%s-%s", owner, repo, ref))
-	dst, err := os.Create(downloadedName)
+func cloneRepo(token, workspacePath, clonePath, owner, repo, ref string) (string, error) {
+	archive, err := downloadRepo(token, owner, repo, ref, workspacePath)
 	if err != nil {
 		return "", err
 	}
-	defer dst.Close()
 
-	if err := downloadRepo(token, owner, repo, ref, dst); err != nil {
-		return "", err
-	}
+	finalDestination := filepath.Join(workspacePath, clonePath)
+	unpackTo, _ := filepath.Split(finalDestination)
+	os.MkdirAll(unpackTo, 0700)
 
-	return downloadedName, nil
+	return unarchiveRepo(archive, unpackTo, finalDestination)
 }
 
-func downloadRepo(token, owner, repo, ref string, dst io.Writer) error {
+func unarchiveRepo(file, dirToUnPackTo, finalName string) (string, error) {
+	tarPath, err := exec.LookPath("tar")
+	if err != nil {
+		return "", err
+	}
+
+	result, err := execute(nil, dirToUnPackTo, tarPath, "-xvf", file)
+
+	if err != nil {
+		return "", err
+	}
+
+	if result.ExitCode != 0 {
+		return "", fmt.Errorf("extract archive failed: %v %v", result.ExitCode, strings.TrimSpace(result.Output))
+	}
+
+	var extractedFile = filepath.Base(file)
+	var name = extractedFile[:strings.Index(extractedFile, ".")]
+	var extractedFolder = filepath.Join(dirToUnPackTo, name)
+
+	return finalName, os.Rename(extractedFolder, finalName)
+}
+
+func downloadRepo(token, owner, repo, ref string, location string) (string, error) {
 	client, err := getClientForToken(token)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	u := fmt.Sprintf("repos/%s/%s/tarball/%s", owner, repo, ref)
 	req, err := client.NewRequest("GET", u, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	_, err = client.Do(req, dst)
+	temp, err := ioutil.TempFile(location, "download")
 	if err != nil {
-		return err
+		return "", err
+	}
+	defer temp.Close()
+
+	resp, err := client.Do(req, temp)
+	if err != nil {
+		return "", err
+	}
+	_, params, err := mime.ParseMediaType(resp.Response.Header["Content-Disposition"][0])
+	if err != nil {
+		return "", err
 	}
 
-	return nil
+	fileName := params["filename"]
+	downloaded := filepath.Join(location, fileName)
+
+	os.Rename(temp.Name(), downloaded)
+
+	return downloaded, nil
 }

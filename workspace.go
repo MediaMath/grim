@@ -7,43 +7,20 @@ package grim
 import (
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 )
 
-func prepareWorkspace(configRoot, workspaceRoot, owner, repo string, env []string) (string, error) {
-	prepareScriptPath := findPrepareScript(configRoot, owner, repo)
-
+func prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref string) (string, error) {
 	workspacePath, err := createWorkspaceDirectory(workspaceRoot, owner, repo)
 	if err != nil {
 		return "", fmt.Errorf("failed to create workspace directory: %v", err)
 	}
 
-	if prepareScriptPath != "" {
-		result, err := execute(prepareScriptPath, workspacePath, env)
-		if err != nil {
-			return "", fmt.Errorf("prepare script exited with err: %v", err)
-		}
-
-		if result.ExitCode != 0 {
-			return "", fmt.Errorf("prepare script exited with code: %v", result.ExitCode)
-		}
+	_, err = cloneRepo(token, workspacePath, clonePath, owner, repo, ref)
+	if err != nil {
+		return "", fmt.Errorf("failed to download repo archive: %v", err)
 	}
 
 	return workspacePath, nil
-}
-
-func findPrepareScript(configRoot, owner, repo string) string {
-	repoPrepareScript := filepath.Join(configRoot, owner, repo, prepareScriptName)
-	if fileExists(repoPrepareScript) {
-		return repoPrepareScript
-	}
-
-	globalPrepareScript := filepath.Join(configRoot, prepareScriptName)
-	if fileExists(globalPrepareScript) {
-		return globalPrepareScript
-	}
-
-	return ""
 }
 
 func createWorkspaceDirectory(workspaceRoot, owner, repo string) (string, error) {

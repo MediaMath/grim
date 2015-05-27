@@ -5,19 +5,22 @@ package grim
 // license that can be found in the LICENSE file.
 
 import (
+	"fmt"
 	"os/exec"
 	"syscall"
 	"time"
 )
 
-func execute(execPath, workingDir string, env []string) (*executeResult, error) {
+func execute(env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
 	var exitCode int
 
 	startTime := time.Now()
 
-	cmd := exec.Command(execPath)
+	cmd := exec.Command(execPath, args...)
 	cmd.Dir = workingDir
 	cmd.Env = env
+
+	fmt.Printf("%v\n", workingDir)
 
 	output, cmdErr := cmd.CombinedOutput()
 
