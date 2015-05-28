@@ -18,7 +18,6 @@ var (
 	defaultResultRoot         = "/var/log/grim"
 	defaultWorkspaceRoot      = "/var/tmp/grim"
 	configFileName            = "config.json"
-	prepareScriptName         = "prepare.sh"
 	buildScriptName           = "build.sh"
 	repoBuildScriptName       = "grim_build.sh"
 	repoHiddenBuildScriptName = ".grim_build.sh"

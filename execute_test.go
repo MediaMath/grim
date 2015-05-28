@@ -16,7 +16,7 @@ func TestRunFalse(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result, err := execute(falsePath, "", nil)
+		result, err := execute(nil, "", falsePath)
 		if err != nil {
 			t.Error(err)
 		}

@@ -10,12 +10,9 @@ import (
 	"path/filepath"
 )
 
-func build(configRoot, workspaceRoot, clonePath, owner, repo string, extraEnv []string) (*executeResult, string, error) {
-	env := os.Environ()
-	env = append(env, fmt.Sprintf("CLONE_PATH=%v", clonePath))
-	env = append(env, extraEnv...)
+func build(token, configRoot, workspaceRoot, clonePath, owner, repo, ref string, extraEnv []string) (*executeResult, string, error) {
 
-	workspacePath, err := prepareWorkspace(configRoot, workspaceRoot, owner, repo, env)
+	workspacePath, err := prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref)
 	if err != nil {
 		return nil, workspacePath, fmt.Errorf("failed to prepare workspace: %v", err)
 	}
@@ -25,7 +22,10 @@ func build(configRoot, workspaceRoot, clonePath, owner, repo string, extraEnv []
 		return nil, workspacePath, fmt.Errorf("unable to find a build script to run; see README.md for more information")
 	}
 
-	result, err := execute(buildScriptPath, workspacePath, env)
+	env := os.Environ()
+	env = append(env, fmt.Sprintf("CLONE_PATH=%v", clonePath))
+	env = append(env, extraEnv...)
+	result, err := execute(env, workspacePath, buildScriptPath)
 	if err != nil {
 		return nil, workspacePath, err
 	}
