@@ -1,5 +1,9 @@
 package grim
 
+// Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 import (
 	"fmt"
 	"io/ioutil"
@@ -10,9 +14,6 @@ import (
 	"strings"
 )
 
-// Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
 func cloneRepo(token, workspacePath, clonePath, owner, repo, ref string) (string, error) {
 	archive, err := downloadRepo(token, owner, repo, ref, workspacePath)
 	if err != nil {
@@ -65,9 +66,9 @@ func downloadRepo(token, owner, repo, ref string, location string) (string, erro
 	if err != nil {
 		return "", err
 	}
-	defer temp.Close()
 
 	resp, err := client.Do(req, temp)
+	temp.Close()
 	if err != nil {
 		return "", err
 	}
