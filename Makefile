@@ -1,4 +1,4 @@
-.PHONY:	grimd publish test test-long check clean run cover gosh part ansible
+.PHONY:	grimd publish test test-long check clean run cover part ansible
 
 # Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 # Use of this source code is governed by a BSD-style
@@ -34,13 +34,9 @@ test:
 test-long:
 	go test $(TEST_VERBOSITY) ./...
 
-gosh: 
-	go get github.com/MediaMath/cove/gosh
-	go install -a github.com/MediaMath/cove/gosh
 
-part: gosh
-	gosh github.com/MediaMath/part
-	go install -a github.com/MediaMath/part
+part: 
+	go get -a github.com/MediaMath/part
 
 publish: part tmp/grimd-$(VERSION).zip
 	part -verbose -credentials=$(HOME)/.ivy2/credentials/$(ARTIFACTORY_HOST) -h="https://$(ARTIFACTORY_HOST)/artifactory" -r=$(REPOSITORY) -g=com.mediamath.grim -a=grimd -v=$(VERSION) tmp/grimd-$(VERSION).zip
