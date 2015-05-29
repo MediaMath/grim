@@ -11,6 +11,10 @@ import (
 )
 
 func execute(env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
+	return executeWithOutputChan(nil, env, workingDir, execPath, args...)
+}
+
+func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
 	var exitCode int
 
 	startTime := time.Now()
