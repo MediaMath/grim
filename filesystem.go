@@ -35,16 +35,3 @@ func fileExists(path string) bool {
 
 	return true
 }
-
-func makeTreeNoCreate(pathStr ...string) string {
-	if len(pathStr) == 0 {
-		return ""
-	}
-
-	path := ""
-	for i := range pathStr {
-		path = filepath.Join(path, pathStr[i])
-	}
-
-	return path
-}
