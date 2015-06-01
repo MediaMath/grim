@@ -5,13 +5,36 @@ package grim
 // license that can be found in the LICENSE file.
 
 import (
+	"bufio"
+	"fmt"
+	"io"
 	"os/exec"
+	"sync"
 	"syscall"
 	"time"
 )
 
+type eitherStringOrError struct {
+	str string
+	err error
+}
+
 func execute(env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
-	return executeWithOutputChan(nil, env, workingDir, execPath, args...)
+	outputChan := make(chan string)
+
+	res, err := executeWithOutputChan(outputChan, env, workingDir, execPath, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	out := ""
+	for line := range outputChan {
+		out += fmt.Sprintf("%v\n", line)
+	}
+
+	res.Output = out
+
+	return res, nil
 }
 
 func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
@@ -23,15 +46,39 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 	cmd.Dir = workingDir
 	cmd.Env = env
 
-	output, cmdErr := cmd.CombinedOutput()
+	var startErr error
 
-	if cmdErr != nil {
-		if exitErr, ok := cmdErr.(*exec.ExitError); ok {
+	var wg sync.WaitGroup
+
+	outReader, orErr := cmd.StdoutPipe()
+	if orErr != nil {
+		return nil, fmt.Errorf("error capturing stdout: %v", orErr)
+	}
+
+	errReader, erErr := cmd.StderrPipe()
+	if erErr != nil {
+		return nil, fmt.Errorf("error capturing stderr: %v", erErr)
+	}
+
+	wg.Add(2)
+	go sendLines(outReader, outputChan, &wg)
+	go sendLines(errReader, outputChan, &wg)
+	go closeAfterDone(outputChan, &wg)
+
+	startErr = cmd.Start()
+	if startErr != nil {
+		return nil, fmt.Errorf("error starting process: %v", startErr)
+	}
+
+	waitErr := cmd.Wait()
+
+	if waitErr != nil {
+		if exitErr, ok := waitErr.(*exec.ExitError); ok {
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
 				exitCode = status.ExitStatus()
 			}
 		} else {
-			return nil, cmdErr
+			return nil, waitErr
 		}
 	}
 
@@ -42,6 +89,18 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		UserTime:   cmd.ProcessState.UserTime(),
 		InitialEnv: cmd.Env,
 		ExitCode:   exitCode,
-		Output:     string(output),
 	}, nil
+}
+
+func sendLines(rc io.ReadCloser, linesChan chan string, wg *sync.WaitGroup) {
+	scanner := bufio.NewScanner(rc)
+	for scanner.Scan() {
+		linesChan <- scanner.Text()
+	}
+	wg.Done()
+}
+
+func closeAfterDone(outputChan chan string, wg *sync.WaitGroup) {
+	wg.Wait()
+	close(outputChan)
 }
