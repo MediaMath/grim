@@ -16,6 +16,7 @@ var testContext = &grimNotificationContext{
 	Target:    "plain",
 	UserName:  "mainly",
 	Workspace: "boogey/nights",
+	LogDir:    "once/again/where/it/rains",
 }
 
 var testConfig = &effectiveConfig{
@@ -67,13 +68,13 @@ func compareNotification(n *standardGrimNotification, state refStatusState, colo
 
 func TestContextRender(t *testing.T) {
 
-	str, err := testContext.render("The {{.Owner}} in {{.Repo}} {{.EventName}} {{.UserName}} on the {{.Target}} {{.Workspace}}!")
+	str, err := testContext.render("The {{.Owner}} in {{.Repo}} {{.EventName}} {{.UserName}} on the {{.Target}} {{.Workspace}} {{.LogDir}}!")
 
 	if err != nil {
 		t.Errorf("error %v", err)
 	}
 
-	if str != "The rain in spain falls mainly on the plain boogey/nights!" {
+	if str != "The rain in spain falls mainly on the plain boogey/nights once/again/where/it/rains!" {
 		t.Errorf("Didn't match %v", str)
 	}
 }

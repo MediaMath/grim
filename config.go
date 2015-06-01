@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -171,7 +172,14 @@ func buildLocalEffectiveConfig(global effectiveConfig, local *config) effectiveC
 	}
 }
 
+//When error return log directory in message too
+//Workspace - /var/tmp/grim/MediaMath/Keryx/244159680.
+//log directory - /var/log/grim/MediaMath/Keryx/1432776632064635784
 func templateFor(preamble string) *string {
+	if strings.Contains(preamble, "Error") {
+		s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.logDir}})", preamble)
+		return &s
+	}
 	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.Workspace}})", preamble)
 	return &s
 }

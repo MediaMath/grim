@@ -35,3 +35,21 @@ func fileExists(path string) bool {
 
 	return true
 }
+
+func fileExistsAndIsDirectory(dirPath string) bool {
+	fi, err := os.Stat(dirPath)
+	return err == nil && fi.IsDir()
+}
+
+func makeTreeNoCreate(pathStr ...string) string {
+	if len(pathStr) == 0 {
+		return ""
+	}
+
+	path := ""
+	for i := range pathStr {
+		path = filepath.Join(path, pathStr[i])
+	}
+
+	return path
+}
