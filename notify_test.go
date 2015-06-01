@@ -68,13 +68,18 @@ func compareNotification(n *standardGrimNotification, state refStatusState, colo
 
 func TestContextRender(t *testing.T) {
 
-	str, err := testContext.render("The {{.Owner}} in {{.Repo}} {{.EventName}} {{.UserName}} on the {{.Target}} {{.Workspace}} {{.LogDir}}!")
+	str, err := testContext.render("The {{.Owner}} in {{.Repo}} {{.EventName}} {{.UserName}} on the {{.Target}} {{.Workspace}}!")
+	errStr, err := testContext.render("The {{.Owner}} in {{.Repo}} {{.EventName}} {{.UserName}} on the {{.Target}} {{.LogDir}}!")
 
 	if err != nil {
 		t.Errorf("error %v", err)
 	}
 
-	if str != "The rain in spain falls mainly on the plain boogey/nights once/again/where/it/rains!" {
+	if str != "The rain in spain falls mainly on the plain boogey/nights!" {
 		t.Errorf("Didn't match %v", str)
+	}
+
+	if errStr != "The rain in spain falls mainly on the plain once/again/where/it/rains!" {
+		t.Errorf("Didn't match %v", errStr)
 	}
 }
