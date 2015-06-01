@@ -154,19 +154,19 @@ func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) er
 	extraEnv := hook.env()
 
 	// TODO: do something with the err
-	notify(config, hook, "", "", GrimPending)
+	notify(config, hook, "", GrimPending)
 
-	result, ws, logDir, err := build(config.gitHubToken, configRoot, config.workspaceRoot, config.resultRoot, config.pathToCloneIn, hook.owner, hook.repo, hook.ref, extraEnv)
+	result, ws, err := build(config.gitHubToken, configRoot, config.workspaceRoot, config.resultRoot, config.pathToCloneIn, hook.owner, hook.repo, hook.ref, extraEnv)
 	if err != nil {
-		notify(config, hook, ws, logDir, GrimError)
+		notify(config, hook, ws, GrimError)
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
 	}
 
 	var notifyError error
 	if result.ExitCode == 0 {
-		notifyError = notify(config, hook, ws, logDir, GrimSuccess)
+		notifyError = notify(config, hook, ws, GrimSuccess)
 	} else {
-		notifyError = notify(config, hook, ws, logDir, GrimFailure)
+		notifyError = notify(config, hook, ws, GrimFailure)
 	}
 
 	err = appendResult(config.resultRoot, hook.owner, hook.repo, *result)

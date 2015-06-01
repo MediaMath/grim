@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 var (
@@ -145,10 +144,10 @@ func buildGlobalEffectiveConfig(global *config) effectiveConfig {
 		gitHubToken:     firstNonEmptyStringPtr(global.GitHubToken),
 		hipChatRoom:     firstNonEmptyStringPtr(global.HipChatRoom),
 		hipChatToken:    firstNonEmptyStringPtr(global.HipChatToken),
-		pendingTemplate: firstNonEmptyStringPtr(global.PendingTemplate, templateFor("Starting")),
-		errorTemplate:   firstNonEmptyStringPtr(global.ErrorTemplate, templateFor("Error during")),
-		failureTemplate: firstNonEmptyStringPtr(global.FailureTemplate, templateFor("Failure during")),
-		successTemplate: firstNonEmptyStringPtr(global.SuccessTemplate, templateFor("Success after")),
+		pendingTemplate: firstNonEmptyStringPtr(global.PendingTemplate, templateForStartandSuccess("Starting")),
+		errorTemplate:   firstNonEmptyStringPtr(global.ErrorTemplate, templateForFailureandError("Error during")),
+		failureTemplate: firstNonEmptyStringPtr(global.FailureTemplate, templateForFailureandError("Failure during")),
+		successTemplate: firstNonEmptyStringPtr(global.SuccessTemplate, templateForStartandSuccess("Success after")),
 	}
 }
 
@@ -172,12 +171,13 @@ func buildLocalEffectiveConfig(global effectiveConfig, local *config) effectiveC
 	}
 }
 
-func templateFor(preamble string) *string {
-	if strings.Contains(preamble, "Error") {
-		s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.logDir}})", preamble)
-		return &s
-	}
+func templateForStartandSuccess(preamble string) *string {
 	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.Workspace}})", preamble)
+	return &s
+}
+
+func templateForFailureandError(preamble string) *string {
+	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.logDir}})", preamble)
 	return &s
 }
 

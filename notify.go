@@ -63,12 +63,14 @@ func buildContext(hook hookEvent, ws, logDir string) *grimNotificationContext {
 	return &grimNotificationContext{hook.owner, hook.repo, hook.eventName, hook.target, hook.userName, ws, logDir}
 }
 
-func notify(config *effectiveConfig, hook hookEvent, ws string, logDir string, notification grimNotification) error {
+func notify(config *effectiveConfig, hook hookEvent, ws string, notification grimNotification) error {
 	if hook.eventName != "push" && hook.eventName != "pull_request" {
 		return nil
 	}
 
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, notification.GithubRefStatus(), "", "")
+
+	logDir := config.resultRoot + "/" + hook.owner + "/" + hook.repo
 
 	if config.hipChatToken != "" && config.hipChatRoom != "" {
 		context := buildContext(hook, ws, logDir)
