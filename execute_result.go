@@ -6,8 +6,8 @@ package grim
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -22,15 +22,7 @@ type executeResult struct {
 	Output     string `json:"-"`
 }
 
-func appendResult(resultRoot, owner, repo string, result executeResult) error {
-	basename := fmt.Sprintf("%v", time.Now().UnixNano())
-	resultPath := makeTree(resultRoot, owner, repo, basename)
-
-	outputErr := writeOutput(resultPath, result.Output)
-	if outputErr != nil {
-		return outputErr
-	}
-
+func appendResult(resultPath string, result executeResult) error {
 	resultErr := writeResult(resultPath, &result)
 	if resultErr != nil {
 		return resultErr
@@ -39,14 +31,18 @@ func appendResult(resultRoot, owner, repo string, result executeResult) error {
 	return nil
 }
 
-func writeOutput(path, contents string) error {
+func writeOutput(path string, outputChan chan string) {
 	filename := filepath.Join(path, "output.txt")
 
-	if err := ioutil.WriteFile(filename, []byte(contents), defaultFileMode); err != nil {
-		return err
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, defaultFileMode)
+	if err != nil {
+		return
 	}
 
-	return nil
+	for line := range outputChan {
+		file.WriteString(line + "\n")
+	}
+	file.Close()
 }
 
 func writeResult(path string, result *executeResult) error {

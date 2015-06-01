@@ -70,10 +70,12 @@ func (i *Instance) PrepareRepos() error {
 		if err != nil {
 			return fatalGrimErrorf("error subscribing Grim queue %q to SNS topic %q: %v", i.queue.ARN, snsTopicARN, err)
 		}
+
 		err = prepareAmazonSNSService(localConfig.gitHubToken, repo.owner, repo.name, snsTopicARN, config.awsKey, config.awsSecret, config.awsRegion)
 		if err != nil {
 			return fatalGrimErrorf("error creating configuring GitHub AmazonSNS service: %v", err)
 		}
+
 		topicARNs = append(topicARNs, snsTopicARN)
 	}
 
@@ -167,11 +169,6 @@ func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) er
 		notifyError = notify(config, hook, ws, GrimSuccess)
 	} else {
 		notifyError = notify(config, hook, ws, GrimFailure)
-	}
-
-	err = appendResult(config.resultRoot, hook.owner, hook.repo, *result)
-	if err != nil {
-		return fatalGrimErrorf("error while storing result: %v", err)
 	}
 
 	return notifyError

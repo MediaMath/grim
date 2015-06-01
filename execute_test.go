@@ -26,3 +26,56 @@ func TestRunFalse(t *testing.T) {
 		}
 	})
 }
+
+func TestRunEcho(t *testing.T) {
+	withTempDir(t, func(path string) {
+		echoPath, err := exec.LookPath("echo")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		result, err := execute(nil, "", echoPath, "test")
+		if err != nil {
+			t.Error(err)
+		}
+
+		if result.ExitCode != 0 {
+			t.Error("false should return 1 as its exit code")
+		}
+
+		if result.Output != "test\n" {
+			t.Error("only line of output was not 'test' as expected")
+		}
+	})
+}
+
+func TestRunEchoWithChan(t *testing.T) {
+	withTempDir(t, func(path string) {
+		echoPath, err := exec.LookPath("echo")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		outputChan := make(chan string)
+
+		result, err := executeWithOutputChan(outputChan, nil, "", echoPath, "test")
+		if err != nil {
+			t.Error(err)
+		}
+
+		if result.ExitCode != 0 {
+			t.Error("false should return 1 as its exit code")
+		}
+
+		select {
+		case line, ok := <-outputChan:
+			if !ok {
+				t.Error("channel closed before output")
+			} else if line != "test" {
+				t.Error("only line of output was not 'test' as expected")
+			}
+		default:
+			t.Error("no output ready even though echo terminated")
+		}
+	})
+}
