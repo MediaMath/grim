@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 )
 
-func build(token, configRoot, workspaceRoot, clonePath, owner, repo, ref string, extraEnv []string) (*executeResult, string, error) {
+func build(token, configRoot, workspaceRoot, resultRoot, clonePath, owner, repo, ref string, extraEnv []string) (*executeResult, string, error) {
 
 	workspacePath, err := prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref)
 	if err != nil {

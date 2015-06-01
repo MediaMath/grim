@@ -42,6 +42,7 @@ type grimNotificationContext struct {
 	Target    string
 	UserName  string
 	Workspace string
+	LogDir    string
 }
 
 func (c *grimNotificationContext) render(templateString string) (string, error) {
@@ -58,8 +59,8 @@ func (c *grimNotificationContext) render(templateString string) (string, error) 
 	return doc.String(), nil
 }
 
-func buildContext(hook hookEvent, ws string) *grimNotificationContext {
-	return &grimNotificationContext{hook.owner, hook.repo, hook.eventName, hook.target, hook.userName, ws}
+func buildContext(hook hookEvent, ws, logDir string) *grimNotificationContext {
+	return &grimNotificationContext{hook.owner, hook.repo, hook.eventName, hook.target, hook.userName, ws, logDir}
 }
 
 func notify(config *effectiveConfig, hook hookEvent, ws string, notification grimNotification) error {
@@ -69,8 +70,10 @@ func notify(config *effectiveConfig, hook hookEvent, ws string, notification gri
 
 	ghErr := setRefStatus(config.gitHubToken, hook.owner, hook.repo, hook.statusRef, notification.GithubRefStatus(), "", "")
 
+	logDir := config.resultRoot + "/" + hook.owner + "/" + hook.repo
+
 	if config.hipChatToken != "" && config.hipChatRoom != "" {
-		context := buildContext(hook, ws)
+		context := buildContext(hook, ws, logDir)
 		message, color, err := notification.HipchatNotification(context, config)
 		if err != nil {
 			return err
