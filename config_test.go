@@ -153,16 +153,30 @@ func TestGlobalEffectiveConfigNoDefaults(t *testing.T) {
 	}
 }
 
+func TestLocalEffectiveConfigSnsTopic(t *testing.T) {
+	global := effectiveConfig{snsTopicName: "global"}
+	has := config{SnsTopicName: s("local")}
+	none := config{}
+
+	if ec := buildLocalEffectiveConfig(global, &has, "foo", "bar"); ec.snsTopicName != "local" {
+		t.Errorf("local didnt exists %v", ec)
+	}
+
+	if ec := buildLocalEffectiveConfig(global, &none, "foo", "bar"); ec.snsTopicName != "grim-foo-bar-repo-topic" {
+		t.Errorf("didnt default %v", ec)
+	}
+}
+
 func TestLocalEffectiveConfigPathIsNotGlobal(t *testing.T) {
 	global := effectiveConfig{pathToCloneIn: "global"}
 	has := config{PathToCloneIn: s("local")}
 	none := config{}
 
-	if ec := buildLocalEffectiveConfig(global, &has); ec.pathToCloneIn != "local" {
+	if ec := buildLocalEffectiveConfig(global, &has, "foo", "bar"); ec.pathToCloneIn != "local" {
 		t.Errorf("local didnt exists %v", ec)
 	}
 
-	if ec := buildLocalEffectiveConfig(global, &none); ec.pathToCloneIn != "" {
+	if ec := buildLocalEffectiveConfig(global, &none, "foo", "bar"); ec.pathToCloneIn != "" {
 		t.Errorf("had global path %v", ec)
 	}
 }
@@ -190,7 +204,7 @@ func TestLocalEffectiveConfigDoesOverwriteGlobals(t *testing.T) {
 
 	none := config{}
 
-	if ec := buildLocalEffectiveConfig(global, &has); ec.gitHubToken != "local" ||
+	if ec := buildLocalEffectiveConfig(global, &has, "foo", "bar"); ec.gitHubToken != "local" ||
 		ec.pendingTemplate != "local" ||
 		ec.errorTemplate != "local" ||
 		ec.successTemplate != "local" ||
@@ -200,7 +214,7 @@ func TestLocalEffectiveConfigDoesOverwriteGlobals(t *testing.T) {
 		t.Errorf("local did not overwrite global %v", ec)
 	}
 
-	if ec := buildLocalEffectiveConfig(global, &none); ec.gitHubToken != "global" ||
+	if ec := buildLocalEffectiveConfig(global, &none, "foo", "bar"); ec.gitHubToken != "global" ||
 		ec.pendingTemplate != "global" ||
 		ec.errorTemplate != "global" ||
 		ec.successTemplate != "global" ||
@@ -231,7 +245,7 @@ func TestLocalEffectiveConfigDoesntOverwriteGlobals(t *testing.T) {
 		AWSSecret:     s("local.awsSecret"),
 		GrimServerID:  s("local.grimServerID")}
 
-	ec := buildLocalEffectiveConfig(global, &local)
+	ec := buildLocalEffectiveConfig(global, &local, "foo", "bar")
 
 	if ec.grimQueueName != "global.grimQueueName" ||
 		ec.resultRoot != "global.resultRoot" ||
@@ -241,6 +255,16 @@ func TestLocalEffectiveConfigDoesntOverwriteGlobals(t *testing.T) {
 		ec.awsSecret != "global.awsSecret" ||
 		ec.grimServerID != "global.grimServerID" {
 		t.Errorf("local overwrote global. %v", ec)
+	}
+}
+
+func TestValidateLocalEffectiveConfig(t *testing.T) {
+	if err := validateLocalEffectiveConfig(effectiveConfig{}); err == nil {
+		t.Errorf("validated with no topic name")
+	}
+
+	if err := validateLocalEffectiveConfig(effectiveConfig{snsTopicName: "foo.go"}); err == nil {
+		t.Errorf("validated with period in name")
 	}
 }
 

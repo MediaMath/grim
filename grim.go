@@ -6,7 +6,6 @@ package grim
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-import "fmt"
 
 // Instance models the state of a configured Grim instance.
 type Instance struct {
@@ -58,12 +57,13 @@ func (i *Instance) PrepareRepos() error {
 	var topicARNs []string
 	for _, repo := range repos {
 		localConfig, err := getEffectiveConfig(configRoot, repo.owner, repo.name)
-
-		snsTopicName := fmt.Sprintf("grim-%v-%v-repo-topic", repo.owner, repo.name)
-
-		snsTopicARN, err := prepareSNSTopic(config.awsKey, config.awsSecret, config.awsRegion, snsTopicName)
 		if err != nil {
-			return fatalGrimErrorf("error creating SNS topic: %v", err)
+			return fatalGrimErrorf("Error with config for %s/%s. %v", repo.owner, repo.name, err)
+		}
+
+		snsTopicARN, err := prepareSNSTopic(config.awsKey, config.awsSecret, config.awsRegion, localConfig.snsTopicName)
+		if err != nil {
+			return fatalGrimErrorf("error creating SNS Topic %s for %s/%s topic: %v", localConfig.snsTopicName, repo.owner, repo.name, err)
 		}
 
 		err = prepareSubscription(config.awsKey, config.awsSecret, config.awsRegion, snsTopicARN, i.queue.ARN)

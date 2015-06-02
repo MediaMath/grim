@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -32,6 +33,7 @@ type config struct {
 	AWSSecret       *string
 	GitHubToken     *string
 	PathToCloneIn   *string
+	SnsTopicName    *string
 	HipChatRoom     *string
 	HipChatToken    *string
 	GrimServerID    *string
@@ -50,6 +52,7 @@ type effectiveConfig struct {
 	awsSecret       string
 	gitHubToken     string
 	pathToCloneIn   string
+	snsTopicName    string
 	hipChatRoom     string
 	hipChatToken    string
 	grimServerID    string
@@ -121,11 +124,16 @@ func getEffectiveConfig(configRoot, owner, repo string) (*effectiveConfig, error
 
 	if global, err = loadGlobalConfig(configRoot); err == nil {
 		if local, err = loadLocalConfig(configRoot, owner, repo); err == nil {
-			ec := buildLocalEffectiveConfig(buildGlobalEffectiveConfig(global), local)
+			ec := buildLocalEffectiveConfig(buildGlobalEffectiveConfig(global), local, owner, repo)
+
+			if err = validateLocalEffectiveConfig(ec); err != nil {
+				return nil, err
+			}
 
 			if err = validateEffectiveConfig(ec); err == nil {
 				return &ec, nil
 			}
+
 		}
 	}
 
@@ -151,7 +159,7 @@ func buildGlobalEffectiveConfig(global *config) effectiveConfig {
 	}
 }
 
-func buildLocalEffectiveConfig(global effectiveConfig, local *config) effectiveConfig {
+func buildLocalEffectiveConfig(global effectiveConfig, local *config, owner, repo string) effectiveConfig {
 	return effectiveConfig{
 		grimQueueName:   global.grimQueueName,
 		resultRoot:      global.resultRoot,
@@ -161,14 +169,20 @@ func buildLocalEffectiveConfig(global effectiveConfig, local *config) effectiveC
 		awsSecret:       global.awsSecret,
 		grimServerID:    global.grimServerID,
 		gitHubToken:     firstNonEmptyStringPtr(local.GitHubToken, &global.gitHubToken),
-		pathToCloneIn:   firstNonEmptyStringPtr(local.PathToCloneIn),
 		hipChatRoom:     firstNonEmptyStringPtr(local.HipChatRoom, &global.hipChatRoom),
 		hipChatToken:    firstNonEmptyStringPtr(local.HipChatToken, &global.hipChatToken),
 		pendingTemplate: firstNonEmptyStringPtr(local.PendingTemplate, &global.pendingTemplate),
 		successTemplate: firstNonEmptyStringPtr(local.SuccessTemplate, &global.successTemplate),
 		errorTemplate:   firstNonEmptyStringPtr(local.ErrorTemplate, &global.errorTemplate),
 		failureTemplate: firstNonEmptyStringPtr(local.FailureTemplate, &global.failureTemplate),
+		pathToCloneIn:   firstNonEmptyStringPtr(local.PathToCloneIn),
+		snsTopicName:    firstNonEmptyStringPtr(local.SnsTopicName, defaultTopicName(owner, repo)),
 	}
+}
+
+func defaultTopicName(owner, repo string) *string {
+	snsTopicName := fmt.Sprintf("grim-%v-%v-repo-topic", owner, repo)
+	return &snsTopicName
 }
 
 func templateForStartandSuccess(preamble string) *string {
@@ -188,6 +202,18 @@ func validateEffectiveConfig(ec effectiveConfig) error {
 		return fmt.Errorf("AWS key is required")
 	} else if ec.awsSecret == "" {
 		return fmt.Errorf("AWS secret is required")
+	}
+
+	return nil
+}
+
+func validateLocalEffectiveConfig(ec effectiveConfig) error {
+	if ec.snsTopicName == "" {
+		return fmt.Errorf("Must have a Sns topic name!")
+	}
+
+	if strings.Contains(ec.snsTopicName, ".") {
+		return fmt.Errorf("Cannot have . in sns topic name.  Default topic names can be set in the build config file using the SnsTopicName parameter.")
 	}
 
 	return nil
