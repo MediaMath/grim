@@ -3,6 +3,11 @@
 //grimd is a daemon process that uses the grim library.
 package grim
 
+import (
+	"fmt"
+	"time"
+)
+
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -152,13 +157,24 @@ func (i *Instance) BuildRef(owner, repo, ref string) error {
 	})
 }
 
+func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent) (*executeResult, string, error) {
+	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.owner, hook.repo, hook.ref, hook.env())
+}
+
 func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) error {
-	extraEnv := hook.env()
+	return onHook(configRoot, config, hook, buildOnHook)
+}
+
+type hookAction func(string, string, *effectiveConfig, hookEvent) (*executeResult, string, error)
+
+func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action hookAction) error {
+	basename := fmt.Sprintf("%v", time.Now().UnixNano())
+	resultPath := makeTree(config.resultRoot, hook.owner, hook.repo, basename)
 
 	// TODO: do something with the err
 	notify(config, hook, "", GrimPending)
 
-	result, ws, err := build(config.gitHubToken, configRoot, config.workspaceRoot, config.resultRoot, config.pathToCloneIn, hook.owner, hook.repo, hook.ref, extraEnv)
+	result, ws, err := action(configRoot, resultPath, config, hook)
 	if err != nil {
 		notify(config, hook, ws, GrimError)
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)

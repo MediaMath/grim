@@ -8,10 +8,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 )
 
-func build(token, configRoot, workspaceRoot, resultRoot, clonePath, owner, repo, ref string, extraEnv []string) (*executeResult, string, error) {
+func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string) (*executeResult, string, error) {
 	workspacePath, err := prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref)
 	if err != nil {
 		return nil, workspacePath, fmt.Errorf("failed to prepare workspace: %v", err)
@@ -26,11 +25,7 @@ func build(token, configRoot, workspaceRoot, resultRoot, clonePath, owner, repo,
 	env = append(env, fmt.Sprintf("CLONE_PATH=%v", clonePath))
 	env = append(env, extraEnv...)
 
-	basename := fmt.Sprintf("%v", time.Now().UnixNano())
-	resultPath := makeTree(resultRoot, owner, repo, basename)
-
 	outputChan := make(chan string)
-
 	go writeOutput(resultPath, outputChan)
 
 	result, err := executeWithOutputChan(outputChan, env, workspacePath, buildScriptPath)
