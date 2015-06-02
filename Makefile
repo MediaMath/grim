@@ -10,7 +10,7 @@ ARTIFACTORY_HOST = artifactory.mediamath.com
 
 VERSION = $(strip $(TIMESTAMP))
 ifndef REPOSITORY 
-	REPOSITORY = libs-staging-local
+	REPOSITORY = libs-staging-global
 endif
 
 LDFLAGS = -ldflags "-X main.version $(VERSION)-$(BUILD_TIME)"

@@ -17,7 +17,7 @@ if [ "$GH_EVENT_NAME" == "push" -a "$GH_TARGET" == "master" ]; then
 	REPOSITORY=libs-release-global make clean check publish
 elif [ "$GH_EVENT_NAME" == "pull_request" -a "$GH_TARGET" == "master" ]; then
 	#on pull requests publish to staging repo, allows for end to end testing with automation
-	REPOSITORY=libs-staging-local make clean check publish
+	REPOSITORY=libs-staging-global make clean check publish
 else 
 	#otherwise just build it
 	make clean check grimd
