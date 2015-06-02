@@ -58,12 +58,12 @@ func (i *Instance) PrepareRepos() error {
 	for _, repo := range repos {
 		localConfig, err := getEffectiveConfig(configRoot, repo.owner, repo.name)
 		if err != nil {
-			return fatalGrimErrorf("Error with config for %s/%s. %v", repo.owner, repo.name, localErr)
+			return fatalGrimErrorf("Error with config for %s/%s. %v", repo.owner, repo.name, err)
 		}
 
 		snsTopicARN, err := prepareSNSTopic(config.awsKey, config.awsSecret, config.awsRegion, localConfig.snsTopicName)
 		if err != nil {
-			return fatalGrimErrorf("error creating SNS Topic %s for %s/%s topic: %v", snsTopicName, repo.owner, repo.name, err)
+			return fatalGrimErrorf("error creating SNS Topic %s for %s/%s topic: %v", localConfig.snsTopicName, repo.owner, repo.name, err)
 		}
 
 		err = prepareSubscription(config.awsKey, config.awsSecret, config.awsRegion, snsTopicARN, i.queue.ARN)
