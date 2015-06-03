@@ -4,7 +4,10 @@
 package grim
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"time"
 )
 
@@ -116,21 +119,21 @@ func (i *Instance) BuildNextInGrimQueue() error {
 			return grimErrorf("error extracting hook from message: %v", err)
 		}
 
-		if !(hook.eventName == "push" || hook.eventName == "pull_request" && (hook.action == "opened" || hook.action == "reopened" || hook.action == "synchronize")) {
+		if !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize")) {
 			return nil
 		}
 
-		if hook.eventName == "pull_request" {
-			sha, err := pollForMergeCommitSha(globalConfig.gitHubToken, hook.owner, hook.repo, hook.prNumber)
+		if hook.EventName == "pull_request" {
+			sha, err := pollForMergeCommitSha(globalConfig.gitHubToken, hook.Owner, hook.Repo, hook.PrNumber)
 			if err != nil {
 				return grimErrorf("error getting merge commit sha: %v", err)
 			} else if sha == "" {
 				return grimErrorf("error getting merge commit sha: field empty")
 			}
-			hook.ref = sha
+			hook.Ref = sha
 		}
 
-		localConfig, err := getEffectiveConfig(configRoot, hook.owner, hook.repo)
+		localConfig, err := getEffectiveConfig(configRoot, hook.Owner, hook.Repo)
 		if err != nil {
 			return grimErrorf("error while reading config: %v", err)
 		}
@@ -151,14 +154,14 @@ func (i *Instance) BuildRef(owner, repo, ref string) error {
 	}
 
 	return buildForHook(configRoot, config, hookEvent{
-		owner: owner,
-		repo:  repo,
-		ref:   ref,
+		Owner: owner,
+		Repo:  repo,
+		Ref:   ref,
 	})
 }
 
 func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent) (*executeResult, string, error) {
-	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.owner, hook.repo, hook.ref, hook.env())
+	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env())
 }
 
 func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) error {
@@ -169,7 +172,12 @@ type hookAction func(string, string, *effectiveConfig, hookEvent) (*executeResul
 
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action hookAction) error {
 	basename := fmt.Sprintf("%v", time.Now().UnixNano())
-	resultPath := makeTree(config.resultRoot, hook.owner, hook.repo, basename)
+	resultPath := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
+
+	hookFile := filepath.Join(resultPath, "hook.json")
+	// TODO: do something with this err too!
+	hookBytes, _ := json.Marshal(&hook)
+	ioutil.WriteFile(hookFile, hookBytes, 0644)
 
 	// TODO: do something with the err
 	notify(config, hook, "", GrimPending)
