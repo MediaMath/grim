@@ -92,7 +92,7 @@ func setPolicy(key, secret, region, queueARN, queueURL string, topicARNs []strin
 	policy := fmt.Sprintf(policyFormat, queueARN, string(bs))
 
 	params := &sqs.SetQueueAttributesInput{
-		Attributes: &map[string]*string{
+		Attributes: map[string]*string{
 			"Policy": aws.String(policy),
 		},
 		QueueURL: aws.String(queueURL),
@@ -148,7 +148,7 @@ func getARNForQueueURL(config *aws.Config, queueURL string) (string, error) {
 		return "", nil
 	}
 
-	atts := *resp.Attributes
+	atts := resp.Attributes
 
 	arnPtr, ok := atts[arnKey]
 	if !ok || arnPtr == nil {
@@ -163,7 +163,7 @@ func createQueue(config *aws.Config, queue string) (string, error) {
 
 	params := &sqs.CreateQueueInput{
 		QueueName: aws.String(queue),
-		Attributes: &map[string]*string{
+		Attributes: map[string]*string{
 			"ReceiveMessageWaitTimeSeconds": aws.String("5"),
 		},
 	}
