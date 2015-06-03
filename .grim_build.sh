@@ -11,8 +11,14 @@ cd "./$CLONE_PATH"
 
 go get ./...
 go get github.com/golang/lint/golint
-make clean check grimd
 
 if [ "$GH_EVENT_NAME" == "push" -a "$GH_TARGET" == "master" ]; then
-	REPOSITORY=libs-release-global make publish
+	#on merge of master publish to release artifactory repo
+	REPOSITORY=libs-release-global make clean check publish
+elif [ "$GH_EVENT_NAME" == "pull_request" -a "$GH_TARGET" == "master" ]; then
+	#on pull requests publish to staging repo, allows for end to end testing with automation
+	REPOSITORY=libs-staging-global make clean check publish
+else 
+	#otherwise just build it
+	make clean check grimd
 fi
