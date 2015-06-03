@@ -177,7 +177,7 @@ func templateForStartandSuccess(preamble string) *string {
 }
 
 func templateForFailureandError(preamble string) *string {
-	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.logDir}})", preamble)
+	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.LogDir}})", preamble)
 	return &s
 }
 
