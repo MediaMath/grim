@@ -170,14 +170,23 @@ func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) er
 
 type hookAction func(string, string, *effectiveConfig, hookEvent) (*executeResult, string, error)
 
+func writeHookEvent(resultPath string, hook hookEvent) error {
+	hookFile := filepath.Join(resultPath, "hook.json")
+	hookBytes, marshalErr := json.Marshal(&hook)
+	if marshalErr != nil {
+		return marshalErr
+	}
+
+	ioutil.WriteFile(hookFile, hookBytes, 0644)
+	return nil
+}
+
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action hookAction) error {
 	basename := fmt.Sprintf("%v", time.Now().UnixNano())
 	resultPath := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
 
-	hookFile := filepath.Join(resultPath, "hook.json")
 	// TODO: do something with this err too!
-	hookBytes, _ := json.Marshal(&hook)
-	ioutil.WriteFile(hookFile, hookBytes, 0644)
+	writeHookEvent(resultPath, hook)
 
 	// TODO: do something with the err
 	notify(config, hook, "", GrimPending)
