@@ -20,20 +20,23 @@ func cloneRepo(token, workspacePath, clonePath, owner, repo, ref string) (string
 		return "", err
 	}
 
-	finalDestination := filepath.Join(workspacePath, clonePath)
-	unpackTo, _ := filepath.Split(finalDestination)
-	os.MkdirAll(unpackTo, 0700)
-
-	return unarchiveRepo(archive, unpackTo, finalDestination)
+	return unarchiveRepo(archive, workspacePath, clonePath)
 }
 
-func unarchiveRepo(file, dirToUnPackTo, finalName string) (string, error) {
+func unarchiveRepo(file, workspacePath, clonePath string) (string, error) {
 	tarPath, err := exec.LookPath("tar")
 	if err != nil {
 		return "", err
 	}
 
-	result, err := execute(nil, dirToUnPackTo, tarPath, "-xvf", file)
+	finalName := filepath.Join(workspacePath, clonePath)
+	if mkErr := os.MkdirAll(finalName, 0700); mkErr != nil {
+		return "", fmt.Errorf("Could not make path %s: %v", finalName, mkErr)
+	}
+
+	//extracts the folder into the finalName directory pulling off the top level folder
+	//will break if github starts returning a different tar format
+	result, err := execute(nil, workspacePath, tarPath, "-xvf", file, "-C", finalName, "--strip-components=1")
 
 	if err != nil {
 		return "", err
@@ -43,11 +46,7 @@ func unarchiveRepo(file, dirToUnPackTo, finalName string) (string, error) {
 		return "", fmt.Errorf("extract archive failed: %v %v", result.ExitCode, strings.TrimSpace(result.Output))
 	}
 
-	var extractedFile = filepath.Base(file)
-	var name = extractedFile[:strings.Index(extractedFile, ".")]
-	var extractedFolder = filepath.Join(dirToUnPackTo, name)
-
-	return finalName, os.Rename(extractedFolder, finalName)
+	return finalName, nil
 }
 
 func downloadRepo(token, owner, repo, ref string, location string) (string, error) {
