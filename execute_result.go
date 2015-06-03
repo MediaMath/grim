@@ -32,7 +32,13 @@ func appendResult(resultPath string, result executeResult) error {
 	return nil
 }
 
-//create "output.txt" file at log root and write logs to it.
+
+func buildStatusFile(path string) (*os.File, error) {
+	filename := filepath.Join(path, "build.txt")
+	return os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, defaultFileMode)
+}
+
+
 func writeOutput(path string, outputChan chan string) {
 	filename := filepath.Join(path, "output.txt")
 
