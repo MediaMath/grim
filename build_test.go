@@ -1,166 +1,155 @@
 package grim
 
 import (
+	"errors"
 	"fmt"
-	"testing"
 	"io/ioutil"
-	"strings"
 	"os"
+	"strings"
+	"testing"
 )
+
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-
-//status code for generating different versions of workspace generator
-const (
-	FailWhenPrepareWorkspace string = "failed to prepare workspace  failed to create workspace directory"
-	FailWhenFindBuildScript string = "unable to find a build script to run; see README.md for more information"
-	FailWhenRunBuildScript string = "build error in running process"
-	NoFail string = "no fails after run build script"
-	DoneWithPrepareWorkspace string = "PrepareWorkspace...finished"
-	DoneWithFindBuildScript string = "FindBuildScript...finished"
-	DoneWithRunBuildScript string = "RunBuildScript...finished"
-)
-
-//path to write log of workspace builder
-var resultPath = "./"
-
-//a workspace builder that has no fail when calling PrepareWorkspace(), FindBuildScript() and RunBuildScript()
-type workSpaceBuilderNoFail  struct {
-	workspaceBuilder
+type testBuilder struct {
+	workspaceErr    error
+	workspaceResult string
+	buildScriptErr  error
+	buildScriptPath string
+	buildErr        error
+	buildResult     *executeResult
 }
 
-func (ws *workSpaceBuilderNoFail) PrepareWorkspace() (string, error) {
-	return DoneWithPrepareWorkspace, nil
+func (tb *testBuilder) PrepareWorkspace() (string, error) {
+	return tb.workspaceResult, tb.workspaceErr
+}
+func (tb *testBuilder) FindBuildScript(workspacePath string) (string, error) {
+	return tb.buildScriptPath, tb.buildScriptErr
+}
+func (tb *testBuilder) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
+	return tb.buildResult, tb.buildErr
 }
 
-func (ws *workSpaceBuilderNoFail) FindBuildScript(worksFindBuildScriptpacePath string) (string, error) {
-	return DoneWithFindBuildScript, nil
-}
+func TestOnBuildStatusFileError(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "build-status-file-error")
+	defer os.RemoveAll(resultPath)
 
-func (ws *workSpaceBuilderNoFail) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
-	return &executeResult{ExitCode:0}, nil
-}
+	tb := &testBuilder{workspaceErr: errors.New(""), workspaceResult: "@$@$"}
+	grimBuild(tb, resultPath)
 
-//a workspace builder that will fail when calling PrepareWorkspace()
-type workspaceBuilderFailWhenPrepareWorkSpace struct {
-	workSpaceBuilderNoFail
-}
-
-func (ws *workspaceBuilderFailWhenPrepareWorkSpace) PrepareWorkspace() (string, error) {
-	return "", fmt.Errorf(FailWhenPrepareWorkspace)
-}
-
-//a workspace builder that will fail when calling FindBuildScript()
-type workspaceBuilderFailWhenFindBuildScript struct {
-	workSpaceBuilderNoFail
-}
-
-func (ws *workspaceBuilderFailWhenFindBuildScript) FindBuildScript(workspacePath string) (string, error) {
-	return "", fmt.Errorf(FailWhenFindBuildScript)
-
-}
-
-//a workspace builder that will fail when calling RunBuildScript()
-type workspaceBuilderFailWhenRunBuildScript struct {
-	workSpaceBuilderNoFail
-}
-
-func (ws *workspaceBuilderFailWhenRunBuildScript) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
-	return nil, fmt.Errorf(FailWhenRunBuildScript)
-}
-
-func workspaceBuilderGeneator(whenToFail string) (grimBuilder, error) {
-	switch(whenToFail){
-	case FailWhenPrepareWorkspace:
-		return &workspaceBuilderFailWhenPrepareWorkSpace{workSpaceBuilderNoFail{workspaceBuilder{}}}, nil
-
-	case FailWhenFindBuildScript:
-		return &workspaceBuilderFailWhenFindBuildScript{workSpaceBuilderNoFail{workspaceBuilder{}}}, nil
-
-	case FailWhenRunBuildScript:
-		return &workspaceBuilderFailWhenRunBuildScript{workSpaceBuilderNoFail{workspaceBuilder{}}}, nil
-
-	case NoFail:
-		return &workSpaceBuilderNoFail{workspaceBuilder{}}, nil
-
-	default:
-		return nil, fmt.Errorf("failed to generate workspace builder")
+	_, err := ioutil.ReadFile(resultPath + "/build.txt")
+	if err != nil {
+		t.Errorf(fmt.Sprintf("Error in building status file: %v", err))
 	}
 }
 
-func TestFailWhenPrepareWorkspace(t *testing.T) {
-	os.Remove(resultPath+"/build.txt")
-	wb, _ := workspaceBuilderGeneator(FailWhenPrepareWorkspace)
-	grimBuild(wb, resultPath)
-	content, _ := ioutil.ReadFile(resultPath+"/build.txt")
-	if !strings.Contains(strings.TrimSpace(string(content)), FailWhenPrepareWorkspace) {
-		t.Error("something wrong when calling PrepareWorkspace(), there should nbe an error here")
+func TestOnPrepareWorkspaceFailure(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "prepare-workspace-failure")
+	defer os.RemoveAll(resultPath)
+
+	tb := &testBuilder{workspaceErr: errors.New(""), workspaceResult: "@$@$"}
+	grimBuild(tb, resultPath)
+
+	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
+	if !strings.Contains(string(buildFile), "failed to prepare workspace @$@$") {
+		t.Errorf("Failed to log error in preparing workspace")
 	}
 }
 
-func TestFailWhenFindBuildScript(t *testing.T) {
-	os.RemoveAll(resultPath+"/build.txt")
-	wb, _ := workspaceBuilderGeneator(FailWhenFindBuildScript)
-	grimBuild(wb, resultPath)
-	content, _ := ioutil.ReadFile(resultPath+"/build.txt")
+func TestOnBuildScriptFailure(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "builds-script-failure")
+	defer os.RemoveAll(resultPath)
 
-	if !strings.Contains(string(content), DoneWithPrepareWorkspace) {
-		t.Error("workspace is not created when calling FindBuildScript()")
+	tb := &testBuilder{buildScriptErr: errors.New("&^&^")}
+	grimBuild(tb, resultPath)
+
+	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
+	buildText := string(buildFile)
+
+	if !strings.Contains(buildText, "workspace created") {
+		t.Errorf("Failed to log sucessful workspace creation")
 	}
 
-	if !strings.Contains(string(content), FailWhenFindBuildScript) {
-		t.Error("something wrong when calling FindBuildScript(), there should be an error here")
-	}
-}
-
-func TestFailWhenWhenRunBuildScript(t *testing.T) {
-	os.RemoveAll(resultPath+"/build.txt")
-	wb, _ := workspaceBuilderGeneator(FailWhenRunBuildScript)
-	grimBuild(wb, resultPath)
-	content, _ := ioutil.ReadFile(resultPath+"/build.txt")
-
-	if !strings.Contains(string(content), DoneWithPrepareWorkspace) {
-		t.Error("workspace is not created when calling RunBuildScript()")
-	}
-
-	if !strings.Contains(string(content), DoneWithFindBuildScript) {
-		t.Error("run script is not found when calling RunBuildScript()")
-	}
-
-	if !strings.Contains(string(content), "build started ...") {
-		t.Error("build is not started when calling RunBuildScript()")
-	}
-
-	if !strings.Contains(string(content), FailWhenRunBuildScript) {
-		t.Error("something wrong when calling FindBuildScript(), there should be an error here")
+	if !strings.Contains(buildText, "&^&^") {
+		t.Errorf("Failed to log error in FindBuildScript")
 	}
 }
 
-func TestWhenNoFailsinWorkSpaceBuilder(t *testing.T) {
-	os.RemoveAll(resultPath+"/build.txt")
-	wb, _ := workspaceBuilderGeneator(NoFail)
-	grimBuild(wb, resultPath)
-	content, _ := ioutil.ReadFile(resultPath+"/build.txt")
+func TestOnRunBuildScriptError(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "builds-script-error")
+	defer os.RemoveAll(resultPath)
 
-	if !strings.Contains(string(content), DoneWithPrepareWorkspace) {
-		t.Error("workspace is not created when calling RunBuildScript()")
+	tb := &testBuilder{buildScriptPath: "!@#", buildErr: errors.New("^%$")} //buildResult: &executeResult{ExitCode: 0}}
+	grimBuild(tb, resultPath)
+
+	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
+	buildText := string(buildFile)
+
+	if !strings.Contains(buildText, "workspace created") {
+		t.Errorf("Failed to log successful workspace creation")
 	}
 
-	if !strings.Contains(string(content), DoneWithFindBuildScript) {
-		t.Error("run script is not found when calling RunBuildScript()")
+	if !strings.Contains(buildText, "build script found !@#") {
+		t.Errorf("Failed to log successful build start")
+	}
+	if !strings.Contains(buildText, "build started ...") {
+		t.Errorf("Failed to log build start")
 	}
 
-	if !strings.Contains(string(content), "build started ...") {
-		t.Error("build is not started when calling RunBuildScript()")
+	if !strings.Contains(buildText, "build error ^%$") {
+		t.Errorf("Failed to log build error")
+	}
+}
+
+func TestOnRunBuildScriptSuccess(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "build-script-success")
+	defer os.RemoveAll(resultPath)
+
+	tb := &testBuilder{buildScriptPath: "!@#", buildResult: &executeResult{ExitCode: 0}}
+	grimBuild(tb, resultPath)
+
+	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
+	buildText := string(buildFile)
+
+	if !strings.Contains(buildText, "workspace created") {
+		t.Errorf("Failed to log successful workspace creation")
 	}
 
-	if !strings.Contains(string(content), "build success") {
-		t.Error("build is not success when calling RunBuildScript()")
+	if !strings.Contains(buildText, "build script found !@#") {
+		t.Errorf("Failed to log successful build start")
+	}
+	if !strings.Contains(buildText, "build started ...") {
+		t.Errorf("Failed to log build start")
 	}
 
-	if !strings.Contains(string(content), "build done") {
-		t.Error("build is not done when calling RunBuildScript()")
+	if !strings.Contains(buildText, "build success") {
+		t.Errorf("Failed to log build success")
+	}
+}
+
+func TestOnRunBuildScriptFailure(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "build-script-error")
+	defer os.RemoveAll(resultPath)
+
+	tb := &testBuilder{buildScriptPath: "!@#", buildResult: &executeResult{ExitCode: 123123123}}
+	grimBuild(tb, resultPath)
+
+	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
+	buildText := string(buildFile)
+
+	if !strings.Contains(buildText, "workspace created") {
+		t.Errorf("Failed to log successful workspace creation")
 	}
 
+	if !strings.Contains(buildText, "build script found !@#") {
+		t.Errorf("Failed to log successful build start")
+	}
+	if !strings.Contains(buildText, "build started ...") {
+		t.Errorf("Failed to log build start")
+	}
+
+	if !strings.Contains(buildText, "build failed") || !strings.Contains(buildText, "123123123") {
+		t.Errorf("Failed to log build failure")
+	}
 }
