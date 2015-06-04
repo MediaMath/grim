@@ -13,34 +13,34 @@ import (
 )
 
 type hookEvent struct {
-	eventName string
-	action    string
-	userName  string
-	owner     string
-	repo      string
-	target    string
-	ref       string
-	statusRef string
-	url       string
-	prNumber  int64
+	EventName string
+	Action    string
+	UserName  string
+	Owner     string
+	Repo      string
+	Target    string
+	Ref       string
+	StatusRef string
+	Url       string
+	PrNumber  int64
 }
 
 func (hook hookEvent) Describe() string {
-	return fmt.Sprintf("hook of %v/%v initiated by a %q to %q by %q", hook.owner, hook.repo, hook.eventName, hook.target, hook.userName)
+	return fmt.Sprintf("hook of %v/%v initiated by a %q to %q by %q", hook.Owner, hook.Repo, hook.EventName, hook.Target, hook.UserName)
 }
 
 func (hook hookEvent) env() []string {
 	return []string{
-		fmt.Sprintf("GH_EVENT_NAME=%v", hook.eventName),
-		fmt.Sprintf("GH_ACTION=%v", hook.action),
-		fmt.Sprintf("GH_USER_NAME=%v", hook.userName),
-		fmt.Sprintf("GH_OWNER=%v", hook.owner),
-		fmt.Sprintf("GH_REPO=%v", hook.repo),
-		fmt.Sprintf("GH_TARGET=%v", hook.target),
-		fmt.Sprintf("GH_REF=%v", hook.ref),
-		fmt.Sprintf("GH_STATUS_REF=%v", hook.statusRef),
-		fmt.Sprintf("GH_URL=%v", hook.url),
-		fmt.Sprintf("GH_PR_NUMBER=%v", hook.prNumber),
+		fmt.Sprintf("GH_EVENT_NAME=%v", hook.EventName),
+		fmt.Sprintf("GH_ACTION=%v", hook.Action),
+		fmt.Sprintf("GH_USER_NAME=%v", hook.UserName),
+		fmt.Sprintf("GH_OWNER=%v", hook.Owner),
+		fmt.Sprintf("GH_REPO=%v", hook.Repo),
+		fmt.Sprintf("GH_TARGET=%v", hook.Target),
+		fmt.Sprintf("GH_REF=%v", hook.Ref),
+		fmt.Sprintf("GH_STATUS_REF=%v", hook.StatusRef),
+		fmt.Sprintf("GH_URL=%v", hook.Url),
+		fmt.Sprintf("GH_PR_NUMBER=%v", hook.PrNumber),
 	}
 }
 
@@ -102,27 +102,27 @@ func extractHookEvent(body string) (*hookEvent, error) {
 
 	hook := new(hookEvent)
 
-	hook.userName = parsed.Sender.Login
-	hook.repo = parsed.Repository.Name
+	hook.UserName = parsed.Sender.Login
+	hook.Repo = parsed.Repository.Name
 
 	if parsed.Action != "" {
-		hook.eventName = "pull_request"
-		hook.action = parsed.Action
-		hook.owner = parsed.Repository.Owner.Login
-		hook.target = parsed.PullRequest.Base.Ref
-		hook.statusRef = parsed.PullRequest.Head.Sha
-		hook.url = parsed.PullRequest.URL
-		hook.prNumber = parsed.Number
+		hook.EventName = "pull_request"
+		hook.Action = parsed.Action
+		hook.Owner = parsed.Repository.Owner.Login
+		hook.Target = parsed.PullRequest.Base.Ref
+		hook.StatusRef = parsed.PullRequest.Head.Sha
+		hook.Url = parsed.PullRequest.URL
+		hook.PrNumber = parsed.Number
 	} else {
-		hook.eventName = "push"
-		hook.owner = parsed.Repository.Owner.Name
-		hook.target = parsed.Ref
-		hook.ref = parsed.HeadCommit.ID
-		hook.statusRef = parsed.HeadCommit.ID
-		hook.url = parsed.Compare
+		hook.EventName = "push"
+		hook.Owner = parsed.Repository.Owner.Name
+		hook.Target = parsed.Ref
+		hook.Ref = parsed.HeadCommit.ID
+		hook.StatusRef = parsed.HeadCommit.ID
+		hook.Url = parsed.Compare
 	}
 
-	hook.target = strings.TrimPrefix(hook.target, "refs/heads/")
+	hook.Target = strings.TrimPrefix(hook.Target, "refs/heads/")
 
 	return hook, nil
 }

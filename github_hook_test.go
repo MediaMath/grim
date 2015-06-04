@@ -16,16 +16,16 @@ func TestPushHook(t *testing.T) {
 	}
 
 	expected := hookEvent{
-		eventName: "push",
-		action:    "",
-		userName:  "bhand-mm",
-		owner:     "MediaMath",
-		repo:      "grim",
-		target:    "test",
-		ref:       "ade10d0a64f122d095e1b33cdb5719099f542288",
-		statusRef: "ade10d0a64f122d095e1b33cdb5719099f542288",
-		url:       "https://github.com/MediaMath/grim/compare/d6bc37a5a405...ade10d0a64f1",
-		prNumber:  0,
+		EventName: "push",
+		Action:    "",
+		UserName:  "bhand-mm",
+		Owner:     "MediaMath",
+		Repo:      "grim",
+		Target:    "test",
+		Ref:       "ade10d0a64f122d095e1b33cdb5719099f542288",
+		StatusRef: "ade10d0a64f122d095e1b33cdb5719099f542288",
+		Url:       "https://github.com/MediaMath/grim/compare/d6bc37a5a405...ade10d0a64f1",
+		PrNumber:  0,
 	}
 
 	failIfDifferent(t, *hook, expected)
@@ -38,16 +38,16 @@ func TestPullRequestHook(t *testing.T) {
 	}
 
 	expected := hookEvent{
-		eventName: "pull_request",
-		action:    "reopened",
-		userName:  "bhand-mm",
-		owner:     "MediaMath",
-		repo:      "grim",
-		target:    "master",
-		ref:       "",
-		statusRef: "566f52c6f30600abe63cd43ffbb74a2da30dba68",
-		url:       "https://github.com/MediaMath/grim/pull/34",
-		prNumber:  34,
+		EventName: "pull_request",
+		Action:    "reopened",
+		UserName:  "bhand-mm",
+		Owner:     "MediaMath",
+		Repo:      "grim",
+		Target:    "master",
+		Ref:       "",
+		StatusRef: "566f52c6f30600abe63cd43ffbb74a2da30dba68",
+		Url:       "https://github.com/MediaMath/grim/pull/34",
+		PrNumber:  34,
 	}
 
 	failIfDifferent(t, *hook, expected)

@@ -10,31 +10,91 @@ import (
 	"path/filepath"
 )
 
-func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string) (*executeResult, string, error) {
-	workspacePath, err := prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref)
+type grimBuilder interface {
+	PrepareWorkspace() (string, error)
+	FindBuildScript(workspacePath string) (string, error)
+	RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error)
+}
+
+func (ws *workspaceBuilder) PrepareWorkspace() (string, error) {
+	return prepareWorkspace(ws.token, ws.workspaceRoot, ws.clonePath, ws.owner, ws.repo, ws.ref)
+}
+
+func (ws *workspaceBuilder) FindBuildScript(workspacePath string) (string, error) {
+	configBuildScript := filepath.Join(ws.configRoot, ws.owner, ws.repo, buildScriptName)
+	if fileExists(configBuildScript) {
+		return configBuildScript, nil
+	}
+
+	repoBuildScript := filepath.Join(workspacePath, ws.clonePath, repoBuildScriptName)
+	if fileExists(repoBuildScript) {
+		return repoBuildScript, nil
+	}
+
+	hiddenRepoBuildScript := filepath.Join(workspacePath, ws.clonePath, repoHiddenBuildScriptName)
+	if fileExists(hiddenRepoBuildScript) {
+		return hiddenRepoBuildScript, nil
+	}
+
+	return "", fmt.Errorf("unable to find a build script to run; see README.md for more information")
+}
+
+func (ws *workspaceBuilder) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
+	env := os.Environ()
+	env = append(env, fmt.Sprintf("CLONE_PATH=%v", ws.clonePath))
+	env = append(env, ws.extraEnv...)
+
+	return executeWithOutputChan(outputChan, env, workspacePath, buildScript)
+}
+
+type workspaceBuilder struct {
+	workspaceRoot string
+	clonePath     string
+	token         string
+	configRoot    string
+	owner         string
+	repo          string
+	ref           string
+	extraEnv      []string
+}
+
+func grimBuild(builder grimBuilder, resultPath string) (*executeResult, string, error) {
+
+	status, err := buildStatusFile(resultPath)
 	if err != nil {
+		return nil, "", fmt.Errorf("failed to create build status file: %v", err)
+	}
+	defer status.Close()
+
+	workspacePath, err := builder.PrepareWorkspace()
+	if err != nil {
+		status.WriteString(fmt.Sprintf("failed to prepare workspace %s %v\n", workspacePath, err))
 		return nil, workspacePath, fmt.Errorf("failed to prepare workspace: %v", err)
 	}
+	status.WriteString(fmt.Sprintf("workspace created %s\n", workspacePath))
 
-	buildScriptPath := findBuildScript(configRoot, workspacePath, clonePath, owner, repo)
-	if buildScriptPath == "" {
-		return nil, workspacePath, fmt.Errorf("unable to find a build script to run; see README.md for more information")
+	buildScriptPath, err := builder.FindBuildScript(workspacePath)
+	if err != nil {
+		status.WriteString(fmt.Sprintf("%v\n", err))
+		return nil, workspacePath, err
 	}
-
-	env := os.Environ()
-	env = append(env, fmt.Sprintf("CLONE_PATH=%v", clonePath))
-	env = append(env, extraEnv...)
+	status.WriteString(fmt.Sprintf("build script found %s\n", buildScriptPath))
 
 	outputChan := make(chan string)
 	go writeOutput(resultPath, outputChan)
 
-	result, err := executeWithOutputChan(outputChan, env, workspacePath, buildScriptPath)
+	status.WriteString(fmt.Sprintf("build started ...\n"))
+	result, err := builder.RunBuildScript(workspacePath, buildScriptPath, outputChan)
 	if err != nil {
+		status.WriteString(fmt.Sprintf("build error %v\n", err))
 		return nil, workspacePath, err
 	}
 
 	if result.ExitCode == 0 {
+		status.WriteString(fmt.Sprintf("build success\n"))
 		os.RemoveAll(workspacePath)
+	} else {
+		status.WriteString(fmt.Sprintf("build failed %v\n", result.ExitCode))
 	}
 
 	err = appendResult(resultPath, *result)
@@ -42,24 +102,11 @@ func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo,
 		return result, workspacePath, fatalGrimErrorf("error while storing result: %v", err)
 	}
 
+	status.WriteString(fmt.Sprintf("build done\n"))
 	return result, workspacePath, nil
 }
 
-func findBuildScript(configRoot, workspacePath, clonePath, owner, repo string) string {
-	configBuildScript := filepath.Join(configRoot, owner, repo, buildScriptName)
-	if fileExists(configBuildScript) {
-		return configBuildScript
-	}
-
-	repoBuildScript := filepath.Join(workspacePath, clonePath, repoBuildScriptName)
-	if fileExists(repoBuildScript) {
-		return repoBuildScript
-	}
-
-	hiddenRepoBuildScript := filepath.Join(workspacePath, clonePath, repoHiddenBuildScriptName)
-	if fileExists(hiddenRepoBuildScript) {
-		return hiddenRepoBuildScript
-	}
-
-	return ""
+func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string) (*executeResult, string, error) {
+	ws := &workspaceBuilder{workspaceRoot, clonePath, token, configRoot, owner, repo, ref, extraEnv}
+	return grimBuild(ws, resultPath)
 }
