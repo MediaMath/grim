@@ -16,7 +16,7 @@ const (
 	FailWhenPrepareWorkspace string = "failed to prepare workspace  failed to create workspace directory"
 	FailWhenFindBuildScript string = "unable to find a build script to run; see README.md for more information"
 	FailWhenRunBuildScript string = "build error in running process"
-	NoFail = "no fails after run build script"
+	NoFail string = "no fails after run build script"
 	DoneWithPrepareWorkspace string = "PrepareWorkspace...finished"
 	DoneWithFindBuildScript string = "FindBuildScript...finished"
 	DoneWithRunBuildScript string = "RunBuildScript...finished"
@@ -137,7 +137,7 @@ func TestFailWhenWhenRunBuildScript(t *testing.T) {
 	}
 }
 
-func TestWhenWhenNoFailsinWorkSpaceBuilder(t *testing.T) {
+func TestWhenNoFailsinWorkSpaceBuilder(t *testing.T) {
 	os.RemoveAll(resultPath+"/build.txt")
 	wb, _ := workspaceBuilderGeneator(NoFail)
 	grimBuild(wb, resultPath)
