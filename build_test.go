@@ -1,26 +1,24 @@
 package grim
 
 import (
-	"testing"
-	"os"
-	"io/ioutil"
-	"strings"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+	"testing"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-var resultPath = "./"
-
 type testBuilder struct {
 	workspaceErr    error
 	workspaceResult string
 	buildScriptErr  error
 	buildScriptPath string
 	buildErr        error
-	buildResult *executeResult
+	buildResult     *executeResult
 }
 
 func (tb *testBuilder) PrepareWorkspace() (string, error) {
@@ -33,20 +31,24 @@ func (tb *testBuilder) RunBuildScript(workspacePath, buildScript string, outputC
 	return tb.buildResult, tb.buildErr
 }
 
-func TestOnBuildStatusFileError(t *testing.T){
+func TestOnBuildStatusFileError(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "build-status-file-error")
+	defer os.RemoveAll(resultPath)
+
 	tb := &testBuilder{workspaceErr: errors.New(""), workspaceResult: "@$@$"}
-	defer os.RemoveAll(resultPath + "/build.txt")
 	grimBuild(tb, resultPath)
 
-	_,err := ioutil.ReadFile(resultPath + "/build.txt")
+	_, err := ioutil.ReadFile(resultPath + "/build.txt")
 	if err != nil {
-		t.Errorf(fmt.Sprintf("Error in building status file: %v",err))
+		t.Errorf(fmt.Sprintf("Error in building status file: %v", err))
 	}
 }
 
 func TestOnPrepareWorkspaceFailure(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "prepare-workspace-failure")
+	defer os.RemoveAll(resultPath)
+
 	tb := &testBuilder{workspaceErr: errors.New(""), workspaceResult: "@$@$"}
-	defer os.RemoveAll(resultPath + "/build.txt")
 	grimBuild(tb, resultPath)
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
@@ -56,8 +58,10 @@ func TestOnPrepareWorkspaceFailure(t *testing.T) {
 }
 
 func TestOnBuildScriptFailure(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "builds-script-failure")
+	defer os.RemoveAll(resultPath)
+
 	tb := &testBuilder{buildScriptErr: errors.New("&^&^")}
-	defer os.RemoveAll(resultPath + "/build.txt")
 	grimBuild(tb, resultPath)
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
@@ -73,8 +77,10 @@ func TestOnBuildScriptFailure(t *testing.T) {
 }
 
 func TestOnRunBuildScriptError(t *testing.T) {
-	tb := &testBuilder{buildScriptPath: "!@#", buildErr: errors.New("^%$")}//buildResult: &executeResult{ExitCode: 0}}
-	defer os.RemoveAll(resultPath + "/build.txt")
+	resultPath, _ := ioutil.TempDir("", "builds-script-error")
+	defer os.RemoveAll(resultPath)
+
+	tb := &testBuilder{buildScriptPath: "!@#", buildErr: errors.New("^%$")} //buildResult: &executeResult{ExitCode: 0}}
 	grimBuild(tb, resultPath)
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
@@ -97,8 +103,10 @@ func TestOnRunBuildScriptError(t *testing.T) {
 }
 
 func TestOnRunBuildScriptSuccess(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "build-script-success")
+	defer os.RemoveAll(resultPath)
+
 	tb := &testBuilder{buildScriptPath: "!@#", buildResult: &executeResult{ExitCode: 0}}
-	defer os.RemoveAll(resultPath + "/build.txt")
 	grimBuild(tb, resultPath)
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
@@ -120,10 +128,11 @@ func TestOnRunBuildScriptSuccess(t *testing.T) {
 	}
 }
 
-
 func TestOnRunBuildScriptFailure(t *testing.T) {
+	resultPath, _ := ioutil.TempDir("", "build-script-error")
+	defer os.RemoveAll(resultPath)
+
 	tb := &testBuilder{buildScriptPath: "!@#", buildResult: &executeResult{ExitCode: 123123123}}
-	defer os.RemoveAll(resultPath + "/build.txt")
 	grimBuild(tb, resultPath)
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
@@ -140,8 +149,7 @@ func TestOnRunBuildScriptFailure(t *testing.T) {
 		t.Errorf("Failed to log build start")
 	}
 
-	if !strings.Contains(buildText, "build failed") || !strings.Contains(buildText,"123123123"){
+	if !strings.Contains(buildText, "build failed") || !strings.Contains(buildText, "123123123") {
 		t.Errorf("Failed to log build failure")
 	}
 }
-
