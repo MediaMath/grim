@@ -23,8 +23,8 @@ const (
 	FailWhenRunBuildScript string = "build error in running process"
 	NoFail = "no fails after run build script"
 	DoneWithPrepareWorkspace string = "PrepareWorkspace...finished"
-	DoneWithFindBuildScript string = "PrepareWorkspace...finished"
-	DoneWithRunBuildScript string = "PrepareWorkspace...finished"
+	DoneWithFindBuildScript string = "FindBuildScript...finished"
+	DoneWithRunBuildScript string = "RunBuildScript...finished"
 )
 
 //path to write log of workspace builder
@@ -146,7 +146,7 @@ func TestFailWhenWhenRunBuildScript(t *testing.T) {
 	grimBuild(wb, resultPath)
 	content, _ := ioutil.ReadFile(resultPath+"/build.txt")
 
-	if !strings.Contains(string(content), DoneWithRunBuildScript) {
+	if !strings.Contains(string(content), DoneWithPrepareWorkspace) {
 		t.Error("workspace is not created when calling RunBuildScript()")
 	}
 
@@ -169,7 +169,7 @@ func TestWhenWhenNoFailsinWorkSpaceBuilder(t *testing.T) {
 	grimBuild(wb, resultPath)
 	content, _ := ioutil.ReadFile(resultPath+"/build.txt")
 
-	if !strings.Contains(string(content), DoneWithRunBuildScript) {
+	if !strings.Contains(string(content), DoneWithPrepareWorkspace) {
 		t.Error("workspace is not created when calling RunBuildScript()")
 	}
 
