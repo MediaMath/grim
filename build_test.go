@@ -30,47 +30,37 @@ const (
 //path to write log of workspace builder
 var resultPath = "./"
 //a full functional  workspace builder
-var workSpaceBuilderWhenNoFunctionFails grimBuilder = &WorkSpaceBuilderWhenNoFunctionFails{workspaceBuilder{"", "", "", "", "", "", "", nil}}
+var workSpaceBuilderOK grimBuilder = &workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}
 
-type WorkSpaceBuilderWhenNoFunctionFails  struct {
+//a workspace builder that has no fail when calling PrepareWorkspace(), FindBuildScript() and RunBuildScript()
+type workSpaceBuilderNoFail  struct {
 	workspaceBuilder
 }
 
-func (ws *WorkSpaceBuilderWhenNoFunctionFails) PrepareWorkspace() (string, error) {
+func (ws *workSpaceBuilderNoFail) PrepareWorkspace() (string, error) {
 	return DoneWithPrepareWorkspace, nil
 }
 
-func (ws *WorkSpaceBuilderWhenNoFunctionFails) FindBuildScript(workspacePath string) (string, error) {
+func (ws *workSpaceBuilderNoFail) FindBuildScript(worksFindBuildScriptpacePath string) (string, error) {
 	return DoneWithFindBuildScript, nil
 }
 
-func (ws *WorkSpaceBuilderWhenNoFunctionFails) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
+func (ws *workSpaceBuilderNoFail) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
 	return &executeResult{time.Now(), time.Now(), time.Nanosecond, time.Nanosecond, nil, 0, ""}, nil
 }
 
-//a workspace builder which will fail in the preparing stage
+//a workspace builder that will fail when calling PrepareWorkspace()
 type workspaceBuilderFailWhenPrepareWorkSpace struct {
-	workspaceBuilder
+	workSpaceBuilderNoFail
 }
 
 func (ws *workspaceBuilderFailWhenPrepareWorkSpace) PrepareWorkspace() (string, error) {
 	return "", fmt.Errorf(FailWhenPrepareWorkspace)
 }
 
-func (ws *workspaceBuilderFailWhenPrepareWorkSpace) FindBuildScript(workspacePath string) (string, error) {
-	return workSpaceBuilderWhenNoFunctionFails.FindBuildScript(workspacePath)
-}
-
-func (ws *workspaceBuilderFailWhenPrepareWorkSpace) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
-	return workSpaceBuilderWhenNoFunctionFails.RunBuildScript(workspacePath, buildScript, outputChan)
-}
-//a workspace builder which will fail when finding build script
+//a workspace builder that will fail when calling FindBuildScript()
 type workspaceBuilderFailWhenFindBuildScript struct {
-	workspaceBuilder
-}
-
-func (ws *workspaceBuilderFailWhenFindBuildScript) PrepareWorkspace() (string, error) {
-	return workSpaceBuilderWhenNoFunctionFails.PrepareWorkspace()
+	workSpaceBuilderNoFail
 }
 
 func (ws *workspaceBuilderFailWhenFindBuildScript) FindBuildScript(workspacePath string) (string, error) {
@@ -78,20 +68,9 @@ func (ws *workspaceBuilderFailWhenFindBuildScript) FindBuildScript(workspacePath
 
 }
 
-func (ws *workspaceBuilderFailWhenFindBuildScript) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
-	return workSpaceBuilderWhenNoFunctionFails.RunBuildScript(workspacePath, buildScript, outputChan)
-}
-//a workspace builder which will fail when running script
+//a workspace builder that will fail when calling RunBuildScript()
 type workspaceBuilderFailWhenRunBuildScript struct {
-	workspaceBuilder
-}
-
-func (ws *workspaceBuilderFailWhenRunBuildScript) PrepareWorkspace() (string, error) {
-	return workSpaceBuilderWhenNoFunctionFails.PrepareWorkspace()
-}
-
-func (ws *workspaceBuilderFailWhenRunBuildScript) FindBuildScript(workspacePath string) (string, error) {
-	return workSpaceBuilderWhenNoFunctionFails.FindBuildScript(workspacePath)
+	workSpaceBuilderNoFail
 }
 
 func (ws *workspaceBuilderFailWhenRunBuildScript) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
@@ -101,15 +80,17 @@ func (ws *workspaceBuilderFailWhenRunBuildScript) RunBuildScript(workspacePath, 
 func workspaceBuilderGeneator(whenToFail string) (grimBuilder, error) {
 	switch(whenToFail){
 	case FailWhenPrepareWorkspace:
-		return &workspaceBuilderFailWhenPrepareWorkSpace{workspaceBuilder{"", "", "", "", "", "", "", nil}}, nil
+		return &workspaceBuilderFailWhenPrepareWorkSpace{workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}}, nil
 
 	case FailWhenFindBuildScript:
-		return &workspaceBuilderFailWhenFindBuildScript{workspaceBuilder{"", "", "", "", "", "", "", nil}}, nil
+		return &workspaceBuilderFailWhenFindBuildScript{workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}}, nil
 
 	case FailWhenRunBuildScript:
-		return &workspaceBuilderFailWhenRunBuildScript{workspaceBuilder{"", "", "", "", "", "", "", nil}}, nil
+		return &workspaceBuilderFailWhenRunBuildScript{workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}}, nil
+
 	case NoFail:
-		return workSpaceBuilderWhenNoFunctionFails, nil
+		return workSpaceBuilderOK, nil
+		
 	default:
 		return nil, fmt.Errorf("failed to generate workspace builder")
 	}
