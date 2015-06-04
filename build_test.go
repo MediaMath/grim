@@ -1,16 +1,11 @@
 package grim
 
 import (
-//"encoding/json"
-//"io/ioutil"
-//"os"
-//"path/filepath"
 	"fmt"
 	"testing"
 	"io/ioutil"
 	"strings"
 	"os"
-	"time"
 )
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -44,7 +39,7 @@ func (ws *workSpaceBuilderNoFail) FindBuildScript(worksFindBuildScriptpacePath s
 }
 
 func (ws *workSpaceBuilderNoFail) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
-	return &executeResult{time.Now(), time.Now(), time.Nanosecond, time.Nanosecond, nil, 0, ""}, nil
+	return &executeResult{ExitCode:0}, nil
 }
 
 //a workspace builder that will fail when calling PrepareWorkspace()
@@ -78,16 +73,16 @@ func (ws *workspaceBuilderFailWhenRunBuildScript) RunBuildScript(workspacePath, 
 func workspaceBuilderGeneator(whenToFail string) (grimBuilder, error) {
 	switch(whenToFail){
 	case FailWhenPrepareWorkspace:
-		return &workspaceBuilderFailWhenPrepareWorkSpace{workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}}, nil
+		return &workspaceBuilderFailWhenPrepareWorkSpace{workSpaceBuilderNoFail{workspaceBuilder{}}}, nil
 
 	case FailWhenFindBuildScript:
-		return &workspaceBuilderFailWhenFindBuildScript{workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}}, nil
+		return &workspaceBuilderFailWhenFindBuildScript{workSpaceBuilderNoFail{workspaceBuilder{}}}, nil
 
 	case FailWhenRunBuildScript:
-		return &workspaceBuilderFailWhenRunBuildScript{workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}}, nil
+		return &workspaceBuilderFailWhenRunBuildScript{workSpaceBuilderNoFail{workspaceBuilder{}}}, nil
 
 	case NoFail:
-		return &workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}, nil
+		return &workSpaceBuilderNoFail{workspaceBuilder{}}, nil
 
 	default:
 		return nil, fmt.Errorf("failed to generate workspace builder")
