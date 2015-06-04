@@ -29,8 +29,6 @@ const (
 
 //path to write log of workspace builder
 var resultPath = "./"
-//a full functional  workspace builder
-var workSpaceBuilderOK grimBuilder = &workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}
 
 //a workspace builder that has no fail when calling PrepareWorkspace(), FindBuildScript() and RunBuildScript()
 type workSpaceBuilderNoFail  struct {
@@ -89,8 +87,8 @@ func workspaceBuilderGeneator(whenToFail string) (grimBuilder, error) {
 		return &workspaceBuilderFailWhenRunBuildScript{workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}}, nil
 
 	case NoFail:
-		return workSpaceBuilderOK, nil
-		
+		return &workSpaceBuilderNoFail{workspaceBuilder{"", "", "", "", "", "", "", nil}}, nil
+
 	default:
 		return nil, fmt.Errorf("failed to generate workspace builder")
 	}
