@@ -24,7 +24,7 @@ func TestPushHook(t *testing.T) {
 		Target:    "test",
 		Ref:       "ade10d0a64f122d095e1b33cdb5719099f542288",
 		StatusRef: "ade10d0a64f122d095e1b33cdb5719099f542288",
-		Url:       "https://github.com/MediaMath/grim/compare/d6bc37a5a405...ade10d0a64f1",
+		URL:       "https://github.com/MediaMath/grim/compare/d6bc37a5a405...ade10d0a64f1",
 		PrNumber:  0,
 	}
 
@@ -46,7 +46,7 @@ func TestPullRequestHook(t *testing.T) {
 		Target:    "master",
 		Ref:       "",
 		StatusRef: "566f52c6f30600abe63cd43ffbb74a2da30dba68",
-		Url:       "https://github.com/MediaMath/grim/pull/34",
+		URL:       "https://github.com/MediaMath/grim/pull/34",
 		PrNumber:  34,
 	}
 
