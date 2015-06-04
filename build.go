@@ -94,7 +94,7 @@ func grimBuild(builder grimBuilder, resultPath string) (*executeResult, string, 
 		status.WriteString(fmt.Sprintf("build success\n"))
 		os.RemoveAll(workspacePath)
 	} else {
-		status.WriteString(fmt.Sprintf("build failed %s\n", result.ExitCode))
+		status.WriteString(fmt.Sprintf("build failed %v\n", result.ExitCode))
 	}
 
 	err = appendResult(resultPath, *result)
