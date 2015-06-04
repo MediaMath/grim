@@ -14,7 +14,7 @@ func build(c *cli.Context) {
 	owner, repo, ref := args.Get(0), args.Get(1), args.Get(2)
 
 	logger.Printf("building %q of %v/%v", ref, owner, repo)
-	if err := g.BuildRef(owner, repo, ref); err != nil {
+	if err := g.BuildRef(owner, repo, ref,logger); err != nil {
 		logger.Fatal(err)
 	}
 }

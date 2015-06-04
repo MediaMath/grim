@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"time"
+	"log"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -96,7 +97,7 @@ func (i *Instance) PrepareRepos() error {
 }
 
 // BuildNextInGrimQueue creates or reuses an SQS queue as a source of work.
-func (i *Instance) BuildNextInGrimQueue() error {
+func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 	if err := i.checkGrimQueue(); err != nil {
 		return err
 	}
@@ -138,14 +139,14 @@ func (i *Instance) BuildNextInGrimQueue() error {
 			return grimErrorf("error while reading config: %v", err)
 		}
 
-		return buildForHook(configRoot, localConfig, *hook)
+		return buildForHook(configRoot, localConfig, *hook, logger)
 	}
 
 	return nil
 }
 
 // BuildRef builds a git ref immediately.
-func (i *Instance) BuildRef(owner, repo, ref string) error {
+func (i *Instance) BuildRef(owner, repo, ref string, logger *log.Logger) error {
 	configRoot := getEffectiveConfigRoot(i.configRoot)
 
 	config, err := getEffectiveConfig(configRoot, owner, repo)
@@ -157,15 +158,16 @@ func (i *Instance) BuildRef(owner, repo, ref string) error {
 		Owner: owner,
 		Repo:  repo,
 		Ref:   ref,
-	})
+	}, logger)
 }
 
 func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent) (*executeResult, string, error) {
 	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env())
 }
 
-func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) error {
-	return onHook(configRoot, config, hook, buildOnHook)
+//logger coming from method BuildRef is a different logger than that co
+func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger) error {
+	return onHook(configRoot, config, hook, buildOnHook, logger)
 }
 
 type hookAction func(string, string, *effectiveConfig, hookEvent) (*executeResult, string, error)
@@ -181,7 +183,7 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 	return nil
 }
 
-func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action hookAction) error {
+func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action hookAction, logger *log.Logger) error {
 	basename := fmt.Sprintf("%v", time.Now().UnixNano())
 	resultPath := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
 
@@ -189,19 +191,31 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action h
 	writeHookEvent(resultPath, hook)
 
 	// TODO: do something with the err
-	notify(config, hook, "", GrimPending)
+	message, _ := notify(config, hook, "", GrimPending)
+	if logger != nil {
+		logger.Print(message)
+	}
 
 	result, ws, err := action(configRoot, resultPath, config, hook)
 	if err != nil {
-		notify(config, hook, ws, GrimError)
+		message, _ = notify(config, hook, ws, GrimError)
+		if logger != nil {
+			logger.Print(message)
+		}
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
 	}
 
 	var notifyError error
 	if result.ExitCode == 0 {
-		notifyError = notify(config, hook, ws, GrimSuccess)
+		message, notifyError = notify(config, hook, ws, GrimSuccess)
+		if logger != nil {
+			logger.Print(message)
+		}
 	} else {
-		notifyError = notify(config, hook, ws, GrimFailure)
+		message, notifyError = notify(config, hook, ws, GrimFailure)
+		if logger != nil {
+			logger.Print(message)
+		}
 	}
 
 	return notifyError
