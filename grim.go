@@ -193,14 +193,14 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action h
 	// TODO: do something with the err
 	message, _ := notify(config, hook, "", GrimPending)
 	if logger != nil {
-		logger.Print(message)
+		logger.Print("grim pending: " + message + "\n")
 	}
 
 	result, ws, err := action(configRoot, resultPath, config, hook)
 	if err != nil {
 		message, _ = notify(config, hook, ws, GrimError)
 		if logger != nil {
-			logger.Print(message)
+			logger.Print("grim error: " + message + "\n")
 		}
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
 	}
@@ -209,12 +209,12 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action h
 	if result.ExitCode == 0 {
 		message, notifyError = notify(config, hook, ws, GrimSuccess)
 		if logger != nil {
-			logger.Print(message)
+			logger.Print("grim success: " + message + "\n")
 		}
 	} else {
 		message, notifyError = notify(config, hook, ws, GrimFailure)
 		if logger != nil {
-			logger.Print(message)
+			logger.Print("grim failure: " + message + "\n")
 		}
 	}
 
