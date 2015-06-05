@@ -42,7 +42,7 @@ func TestOnHipChatLoggingGrimError(t *testing.T) {
 			return &executeResult{ExitCode: 0}, "", errors.New("")
 		}, logger)
 	loggedContent := fmt.Sprintf("%v", &buf)
-	if !strings.Contains(loggedContent, "MediaMathTesting") {
+	if !strings.Contains(loggedContent, "MediaMath") {
 		t.Errorf("Failed to log grim pending")
 	}
 	if !strings.Contains(loggedContent, "error grim") {
@@ -59,7 +59,7 @@ func TestOnHipChatLoggingGrimSuccess(t *testing.T) {
 			return &executeResult{ExitCode: 0}, "", nil
 		}, logger)
 	loggedContent := fmt.Sprintf("%v", &buf)
-	if !strings.Contains(loggedContent, "MediaMathTesting") {
+	if !strings.Contains(loggedContent, "MediaMath") {
 		t.Errorf("Failed to log grim pending")
 	}
 	if !strings.Contains(loggedContent, "grim success") {
@@ -76,7 +76,7 @@ func TestOnHipChatLoggingGrimFailure(t *testing.T) {
 			return &executeResult{ExitCode: 1234}, "", nil
 		}, logger)
 	loggedContent := fmt.Sprintf("%v", &buf)
-	if !strings.Contains(loggedContent, "MediaMathTesting") {
+	if !strings.Contains(loggedContent, "MediaMath") {
 		t.Errorf("Failed to log grim pending")
 	}
 	if !strings.Contains(loggedContent, "grim failure") {
