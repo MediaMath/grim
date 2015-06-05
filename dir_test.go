@@ -18,11 +18,11 @@ func TestOnWorkSpaceAndResultNameConsistency(t *testing.T) {
 	//trigger a build to have file paths of result and workspace
 	builtForHook(tempDir, "MediaMath", "grim", 0)
 
-	pathNameCheck, err := pathsNames.isConsistent()
+	isMatched, err := pathsNames.isConsistent()
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	if !pathNameCheck {
+	if !isMatched {
 		t.Fatalf("inconsistent dir name")
 	}
 }
@@ -46,11 +46,11 @@ func (pn *pathNames) isConsistent() (bool, error) {
 		return false, fmt.Errorf("empty resultPaths name ")
 	}
 
-	if len(a)!=len(b) {
-		return false, fmt.Errorf("inconsistent dir names")
+	if len(a)!=len(b) || !strings.EqualFold(a, b) {
+		return false, fmt.Errorf("inconsistent timestamp workspace:"+a+" and resultpath:"+b)
 	}
 
-	return strings.EqualFold(a, b), nil
+	return true, nil
 }
 
 
