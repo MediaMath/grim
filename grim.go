@@ -165,7 +165,8 @@ func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, 
 	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env())
 }
 
-//logger coming from method BuildRef is a different logger than that co
+//logger coming from method BuildRef is a different logger than that coming from BuildNextInGrimQueue
+//unsure if that is a problem
 func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger) error {
 	return onHook(configRoot, config, hook, buildOnHook, logger)
 }
