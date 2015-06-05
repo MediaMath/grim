@@ -6,11 +6,11 @@ package grim
 
 import (
 	"fmt"
-	"io/ioutil"
+	"path/filepath"
 )
 
-func prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref string) (string, error) {
-	workspacePath, err := createWorkspaceDirectory(workspaceRoot, owner, repo)
+func prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref, basename string) (string, error) {
+	workspacePath, err := createWorkspaceDirectory(workspaceRoot, owner, repo, basename)
 	if err != nil {
 		return "", fmt.Errorf("failed to create workspace directory: %v", err)
 	}
@@ -23,13 +23,8 @@ func prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref string) 
 	return workspacePath, nil
 }
 
-func createWorkspaceDirectory(workspaceRoot, owner, repo string) (string, error) {
+func createWorkspaceDirectory(workspaceRoot, owner, repo, basename string) (string, error) {
 	workspaceParent := makeTree(workspaceRoot, owner, repo)
-
-	workspacePath, err := ioutil.TempDir(workspaceParent, "")
-	if err != nil {
-		return "", err
-	}
-
+	workspacePath := filepath.Join(workspaceParent, basename)
 	return workspacePath, nil
 }
