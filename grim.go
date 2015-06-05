@@ -161,7 +161,7 @@ func (i *Instance) BuildRef(owner, repo, ref string) error {
 }
 
 func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
-	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env(),basename)
+	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env(), basename)
 }
 
 func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) error {
