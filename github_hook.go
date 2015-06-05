@@ -21,7 +21,7 @@ type hookEvent struct {
 	Target    string
 	Ref       string
 	StatusRef string
-	Url       string
+	URL       string
 	PrNumber  int64
 }
 
@@ -39,7 +39,7 @@ func (hook hookEvent) env() []string {
 		fmt.Sprintf("GH_TARGET=%v", hook.Target),
 		fmt.Sprintf("GH_REF=%v", hook.Ref),
 		fmt.Sprintf("GH_STATUS_REF=%v", hook.StatusRef),
-		fmt.Sprintf("GH_URL=%v", hook.Url),
+		fmt.Sprintf("GH_URL=%v", hook.URL),
 		fmt.Sprintf("GH_PR_NUMBER=%v", hook.PrNumber),
 	}
 }
@@ -111,7 +111,7 @@ func extractHookEvent(body string) (*hookEvent, error) {
 		hook.Owner = parsed.Repository.Owner.Login
 		hook.Target = parsed.PullRequest.Base.Ref
 		hook.StatusRef = parsed.PullRequest.Head.Sha
-		hook.Url = parsed.PullRequest.URL
+		hook.URL = parsed.PullRequest.URL
 		hook.PrNumber = parsed.Number
 	} else {
 		hook.EventName = "push"
@@ -119,7 +119,7 @@ func extractHookEvent(body string) (*hookEvent, error) {
 		hook.Target = parsed.Ref
 		hook.Ref = parsed.HeadCommit.ID
 		hook.StatusRef = parsed.HeadCommit.ID
-		hook.Url = parsed.Compare
+		hook.URL = parsed.Compare
 	}
 
 	hook.Target = strings.TrimPrefix(hook.Target, "refs/heads/")

@@ -21,9 +21,16 @@ type standardGrimNotification struct {
 	getTemplate  func(*effectiveConfig) string
 }
 
+//GrimPending is the notification used for pending builds.
 var GrimPending = &standardGrimNotification{RSPending, ColorYellow, func(c *effectiveConfig) string { return c.pendingTemplate }}
+
+//GrimError is the notification used for builds that cannot be run correctly.
 var GrimError = &standardGrimNotification{RSError, ColorGray, func(c *effectiveConfig) string { return c.errorTemplate }}
+
+//GrimFailure is the notification used when builds fail.
 var GrimFailure = &standardGrimNotification{RSFailure, ColorRed, func(c *effectiveConfig) string { return c.failureTemplate }}
+
+//GrimSuccess is the notification used when builds succeed.
 var GrimSuccess = &standardGrimNotification{RSSuccess, ColorGreen, func(c *effectiveConfig) string { return c.successTemplate }}
 
 func (s *standardGrimNotification) GithubRefStatus() refStatusState {
