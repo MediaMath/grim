@@ -62,10 +62,6 @@ func TestLoggingHipChatErrorCreatingMessage(t *testing.T) {
 	notify(testConfigWithHC, testHook, "", GrimPending, logger)
 	message := fmt.Sprintf("%v", &buf)
 
-	if !strings.Contains(message, "pending MediaMath") {
-		t.Errorf("Failed to log message")
-	}
-
 	if !strings.Contains(message, "Hipchat: Error while rendering message") {
 		t.Errorf("Failed to log error in creating to room")
 	}
