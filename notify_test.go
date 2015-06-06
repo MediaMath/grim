@@ -3,12 +3,14 @@ package grim
 import (
 	"fmt"
 	"testing"
+	"log"
+	"strings"
+	"bytes"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-
 var testContext = &grimNotificationContext{
 	Owner:     "rain",
 	Repo:      "spain",
@@ -24,6 +26,72 @@ var testConfig = &effectiveConfig{
 	errorTemplate:   "error {{.Repo}}",
 	failureTemplate: "failure {{.Target}}",
 	successTemplate: "success {{.UserName}}"}
+
+var testHook = hookEvent{
+	Owner: "MediaMath",
+	Repo: "grim",
+	EventName: "push",
+}
+
+func TestLoggingHipChatIncompleteSetup(t *testing.T){
+	var buf bytes.Buffer
+	logger := log.New(&buf, "", log.Lshortfile)
+
+	notify(testConfig, testHook, "", GrimPending, logger)
+	message := fmt.Sprintf("%v", &buf)
+
+	if !strings.Contains(message, "pending MediaMath") {
+		t.Errorf("Failed to log message")
+	}
+
+	if !strings.Contains(message, "HipChat: config.hipChatToken and config.hitChatRoom not set") {
+		t.Errorf("Failed to log that token and room from config are not set")
+	}
+}
+
+func TestLoggingHipChatErrorCreatingMessage(t *testing.T) {
+	var buf bytes.Buffer
+	logger := log.New(&buf, "", log.Lshortfile)
+
+	testConfigWithHC := &effectiveConfig{
+		pendingTemplate: "pending {{.NOPE}}",
+		hipChatToken: "NOT_EMPTY",
+		hipChatRoom: "NON_EMPTY",
+	}
+
+	notify(testConfigWithHC, testHook, "", GrimPending, logger)
+	message := fmt.Sprintf("%v", &buf)
+
+	if !strings.Contains(message, "pending MediaMath") {
+		t.Errorf("Failed to log message")
+	}
+
+	if !strings.Contains(message, "Hipchat: Error while rendering message") {
+		t.Errorf("Failed to log error in creating to room")
+	}
+}
+
+func TestLoggingHipChatErrorSendingMessage(t *testing.T) {
+	var buf bytes.Buffer
+	logger := log.New(&buf, "", log.Lshortfile)
+
+	testConfigWithHC := &effectiveConfig{
+		pendingTemplate: "pending {{.Owner}}",
+		hipChatToken: "NOT_EMPTY",
+		hipChatRoom: "NON_EMPTY",
+	}
+
+	notify(testConfigWithHC, testHook, "", GrimPending, logger)
+	message := fmt.Sprintf("%v", &buf)
+
+	if !strings.Contains(message, "pending MediaMath") {
+		t.Errorf("Failed to log message")
+	}
+
+	if !strings.Contains(message, "Hipchat: Error while sending message to room") {
+		t.Errorf("Failed to log error in sending to room")
+	}
+}
 
 func TestPending(t *testing.T) {
 	if err := compareNotification(GrimPending, RSPending, ColorYellow, "pending rain"); err != nil {

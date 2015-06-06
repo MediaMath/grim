@@ -7,10 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"bytes"
-	"log"
-	"errors"
-	"strings"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -18,71 +14,6 @@ import (
 // license that can be found in the LICENSE file.
 var testOwner = "MediaMath"
 var testRepo = "grim"
-
-var testHookEvent = hookEvent{
-	Owner: testOwner,
-	Repo: testRepo,
-	EventName: "push",
-}
-var testEffectiveConfig = &effectiveConfig{
-	pendingTemplate: "pending {{.Owner}}",
-	errorTemplate:   "error {{.Repo}}",
-	failureTemplate: "failure {{.Target}}",
-	successTemplate: "success {{.UserName}}",
-	hipChatToken: "NOT_EMPTY",
-	hipChatRoom: "NON_EMPTY",
-}
-
-func TestOnHipChatLoggingGrimError(t *testing.T) {
-	var buf bytes.Buffer
-	logger := log.New(&buf, "", log.Lshortfile)
-
-	//onHook(string,*effectiveConfig, hookEvent, action hookAction, logger *log.Logg
-	onHook("not-used", testEffectiveConfig, testHookEvent, func(r string, resultPath string, c *effectiveConfig, h hookEvent) (*executeResult, string, error) {
-			return &executeResult{ExitCode: 0}, "", errors.New("")
-		}, logger)
-	loggedContent := fmt.Sprintf("%v", &buf)
-	if !strings.Contains(loggedContent, "MediaMath") {
-		t.Errorf("Failed to log grim pending")
-	}
-	if !strings.Contains(loggedContent, "error grim") {
-		t.Errorf("Failed to log grim error")
-	}
-}
-
-func TestOnHipChatLoggingGrimSuccess(t *testing.T) {
-	var buf bytes.Buffer
-	logger := log.New(&buf, "", log.Lshortfile)
-
-	//onHook(string,*effectiveConfig, hookEvent, action hookAction, logger *log.Logg
-	onHook("not-used", testEffectiveConfig, testHookEvent, func(r string, resultPath string, c *effectiveConfig, h hookEvent) (*executeResult, string, error) {
-			return &executeResult{ExitCode: 0}, "", nil
-		}, logger)
-	loggedContent := fmt.Sprintf("%v", &buf)
-	if !strings.Contains(loggedContent, "MediaMath") {
-		t.Errorf("Failed to log grim pending")
-	}
-	if !strings.Contains(loggedContent, "grim success") {
-		t.Errorf("Failed to log grim success%v",loggedContent)
-	}
-}
-
-func TestOnHipChatLoggingGrimFailure(t *testing.T) {
-	var buf bytes.Buffer
-	logger := log.New(&buf, "", log.Lshortfile)
-
-	//onHook(string,*effectiveConfig, hookEvent, action hookAction, logger *log.Logg
-	onHook("not-used", testEffectiveConfig, testHookEvent, func(r string, resultPath string, c *effectiveConfig, h hookEvent) (*executeResult, string, error) {
-			return &executeResult{ExitCode: 1234}, "", nil
-		}, logger)
-	loggedContent := fmt.Sprintf("%v", &buf)
-	if !strings.Contains(loggedContent, "MediaMath") {
-		t.Errorf("Failed to log grim pending")
-	}
-	if !strings.Contains(loggedContent, "grim failure") {
-		t.Errorf("Failed to log grim failure%v",loggedContent)
-	}
-}
 
 func TestOnActionFailure(t *testing.T) {
 	tempDir, _ := ioutil.TempDir("", "results-dir-failure")
@@ -124,9 +55,9 @@ func TestHookGetsLogged(t *testing.T) {
 
 	hook := hookEvent{Owner: testOwner, Repo: testRepo, StatusRef: "fooooooooooooooooooo"}
 
-	onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hook, func(r string, resultPath string, c *effectiveConfig, h hookEvent) (*executeResult, string, error) {
+	onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hook, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent) (*executeResult, string, error) {
 			return &executeResult{ExitCode: 0}, "", nil
-		}, nil)
+		})
 
 	results, _ := resultsDirectoryExists(tempDir, testOwner, testRepo)
 	hookFile := filepath.Join(results, "hook.json")
@@ -153,9 +84,9 @@ func TestHookGetsLogged(t *testing.T) {
 }
 
 func doNothingAction(tempDir, owner, repo string, exitCode int, returnedErr error) error {
-	return onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, func(r string, resultPath string, c *effectiveConfig, h hookEvent) (*executeResult, string, error) {
+	return onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent) (*executeResult, string, error) {
 			return &executeResult{ExitCode: exitCode}, "", returnedErr
-		}, nil)
+		})
 }
 
 func resultsDirectoryExists(tempDir, owner, repo string) (string, error) {

@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 	"time"
-	"log"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -165,10 +165,8 @@ func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, 
 	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env())
 }
 
-//logger coming from method BuildRef is a different logger than that coming from BuildNextInGrimQueue
-//unsure if that is a problem
 func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger) error {
-	return onHook(configRoot, config, hook, buildOnHook, logger)
+	return onHook(configRoot, config, hook, logger, buildOnHook)
 }
 
 type hookAction func(string, string, *effectiveConfig, hookEvent) (*executeResult, string, error)
@@ -184,39 +182,26 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 	return nil
 }
 
-func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action hookAction, logger *log.Logger) error {
+func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
 	basename := fmt.Sprintf("%v", time.Now().UnixNano())
 	resultPath := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
 
-	// TODO: do something with this err too!
+	// TODO: do something with this err
 	writeHookEvent(resultPath, hook)
 
-	// TODO: do something with the err
-	message, _ := notify(config, hook, "", GrimPending)
-	if logger != nil {
-		logger.Print("grim pending: " + message + "\n")
-	}
+	notify(config, hook, "", GrimPending, logger)
 
 	result, ws, err := action(configRoot, resultPath, config, hook)
 	if err != nil {
-		message, _ = notify(config, hook, ws, GrimError)
-		if logger != nil {
-			logger.Print("grim error: " + message + "\n")
-		}
+		notify(config, hook, ws, GrimError, logger)
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
 	}
 
 	var notifyError error
 	if result.ExitCode == 0 {
-		message, notifyError = notify(config, hook, ws, GrimSuccess)
-		if logger != nil {
-			logger.Print("grim success: " + message + "\n")
-		}
+		notifyError = notify(config, hook, ws, GrimSuccess, logger)
 	} else {
-		message, notifyError = notify(config, hook, ws, GrimFailure)
-		if logger != nil {
-			logger.Print("grim failure: " + message + "\n")
-		}
+		notifyError = notify(config, hook, ws, GrimFailure, logger)
 	}
 
 	return notifyError
