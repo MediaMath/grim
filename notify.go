@@ -92,7 +92,7 @@ func notify(config *effectiveConfig, hook hookEvent, ws string, notification gri
 
 		err = sendMessageToRoom(config.hipChatToken, config.hipChatRoom, config.grimServerID, message, color)
 		if err != nil {
-			sendToLogger(logger, fmt.Sprintf("Hipchat: Error while sending message to room: %v", message, err))
+			sendToLogger(logger, fmt.Sprintf("Hipchat: Error while sending message to room: %v", err))
 			return err
 		}
 	} else {
