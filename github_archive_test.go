@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -18,8 +19,8 @@ func TestUnarchiveRepo(t *testing.T) {
 		t.Errorf("|%v|", err)
 	}
 	defer os.RemoveAll(f)
-
-	ws, err := createWorkspaceDirectory(f, "baz", "foo.bar")
+	basename := fmt.Sprintf("%v", time.Now().UnixNano())
+	ws, err := createWorkspaceDirectory(f, "baz", "foo.bar",basename)
 
 	if err != nil {
 		t.Errorf("|%v|", err)

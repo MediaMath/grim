@@ -160,15 +160,15 @@ func (i *Instance) BuildRef(owner, repo, ref string) error {
 	})
 }
 
-func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent) (*executeResult, string, error) {
-	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env())
+func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
+	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env(), basename)
 }
 
 func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent) error {
 	return onHook(configRoot, config, hook, buildOnHook)
 }
 
-type hookAction func(string, string, *effectiveConfig, hookEvent) (*executeResult, string, error)
+type hookAction func(string, string, *effectiveConfig, hookEvent, string) (*executeResult, string, error)
 
 func writeHookEvent(resultPath string, hook hookEvent) error {
 	hookFile := filepath.Join(resultPath, "hook.json")
@@ -191,7 +191,7 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action h
 	// TODO: do something with the err
 	notify(config, hook, "", GrimPending)
 
-	result, ws, err := action(configRoot, resultPath, config, hook)
+	result, ws, err := action(configRoot, resultPath, config, hook, basename)
 	if err != nil {
 		notify(config, hook, ws, GrimError)
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
