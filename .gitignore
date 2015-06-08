@@ -25,3 +25,7 @@ _testmain.go
 
 /config.json
 /tmp
+
+# Intellij
+*.iml
+.idea/
