@@ -59,7 +59,6 @@ func builtForHook(tempDir, owner, repo string, exitCode int) error {
 }
 
 func StubBuild(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
-	fmt.Print("result path:"+resultPath+"\n")
 	pathsNames.resultPath=resultPath
 	return built(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env(), basename)
 }
@@ -75,7 +74,6 @@ type testWorkSpaceBuilder struct {
 
 func (tb *testWorkSpaceBuilder) PrepareWorkspace(basename string) (string, error) {
 	workSpacePath, err := createWorkspaceDirectory(tb.workspaceRoot, tb.owner, tb.repo, basename)
-	fmt.Print("workspace:"+workSpacePath)
 	pathsNames.workspacePath=workSpacePath
 	return workSpacePath, err
 }
