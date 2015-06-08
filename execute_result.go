@@ -22,6 +22,7 @@ type executeResult struct {
 	Output     string `json:"-"`
 }
 
+//append the results to "result.json" file
 func appendResult(resultPath string, result executeResult) error {
 	resultErr := writeResult(resultPath, &result)
 	if resultErr != nil {
@@ -31,10 +32,12 @@ func appendResult(resultPath string, result executeResult) error {
 	return nil
 }
 
+
 func buildStatusFile(path string) (*os.File, error) {
 	filename := filepath.Join(path, "build.txt")
 	return os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, defaultFileMode)
 }
+
 
 func writeOutput(path string, outputChan chan string) {
 	filename := filepath.Join(path, "output.txt")
@@ -50,6 +53,7 @@ func writeOutput(path string, outputChan chan string) {
 	file.Close()
 }
 
+//create "result.json" file at log root and write to it.
 func writeResult(path string, result *executeResult) error {
 	filename := filepath.Join(path, "result.json")
 
