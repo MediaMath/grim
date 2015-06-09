@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"text/template"
+	"log"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -70,7 +71,7 @@ func buildContext(hook hookEvent, ws, logDir string) *grimNotificationContext {
 	return &grimNotificationContext{hook.Owner, hook.Repo, hook.EventName, hook.Target, hook.UserName, ws, logDir}
 }
 
-func notify(config *effectiveConfig, hook hookEvent, ws string, notification grimNotification) error {
+func notify(config *effectiveConfig, hook hookEvent, ws string, notification grimNotification, logger *log.Logger) error {
 	if hook.EventName != "push" && hook.EventName != "pull_request" {
 		return nil
 	}
@@ -79,17 +80,23 @@ func notify(config *effectiveConfig, hook hookEvent, ws string, notification gri
 
 	logDir := config.resultRoot + "/" + hook.Owner + "/" + hook.Repo
 
+	context := buildContext(hook, ws, logDir)
+	message, color, err := notification.HipchatNotification(context, config)
+	logger.Print(message)
+
 	if config.hipChatToken != "" && config.hipChatRoom != "" {
-		context := buildContext(hook, ws, logDir)
-		message, color, err := notification.HipchatNotification(context, config)
 		if err != nil {
+			logger.Printf("Hipchat: Error while rendering message: %v", err)
 			return err
 		}
 
 		err = sendMessageToRoom(config.hipChatToken, config.hipChatRoom, config.grimServerID, message, color)
 		if err != nil {
+			logger.Printf("Hipchat: Error while sending message to room: %v", err)
 			return err
 		}
+	} else {
+		logger.Print("HipChat: config.hipChatToken and config.hitChatRoom not set")
 	}
 
 	return ghErr
