@@ -46,3 +46,21 @@ func TestPreparePublicRepo(t *testing.T) {
 		t.Errorf("Directory %s had %v files.", ws, len(files))
 	}
 }
+
+func TestInWorkspaceCreatesIt(t *testing.T) {
+	base, _ := ioutil.TempDir("", "create-workspace-test")
+	defer os.RemoveAll(base)
+
+	path, err := inWorkspaceDirectory(base, "foo", "bar", "basey", func(s string) error { return nil })
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		t.Errorf("%v does not exist", path)
+	}
+
+	if path != filepath.Join(base, "foo", "bar", "basey") {
+		t.Errorf("%v is wrong", path)
+	}
+}

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -20,6 +21,7 @@ Test on the consistency of timestamp of workspace and result.
 func TestOnWorkSpaceAndResultNameConsistency(t *testing.T) {
 	tempDir, _ := ioutil.TempDir("", "results-dir-consistencyCheck")
 	defer os.RemoveAll(tempDir)
+
 	//trigger a build to have file paths of result and workspace
 	builtForHook(tempDir, "MediaMath", "grim", 0)
 
@@ -29,6 +31,10 @@ func TestOnWorkSpaceAndResultNameConsistency(t *testing.T) {
 	}
 	if !isMatched {
 		t.Fatalf("inconsistent dir name")
+	}
+
+	if _, err := os.Stat(pathsNames.workspacePath); os.IsNotExist(err) {
+		t.Errorf("%v does not exist", pathsNames.workspacePath)
 	}
 }
 
@@ -59,7 +65,13 @@ func (pn *pathNames) isConsistent() (bool, error) {
 }
 
 func builtForHook(tempDir, owner, repo string, exitCode int) error {
-	return onHook("not-used", &effectiveConfig{resultRoot: tempDir, workspaceRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, StubBuild)
+	workspaces := filepath.Join(tempDir, "ws")
+	results := filepath.Join(tempDir, "results")
+
+	os.MkdirAll(workspaces, 0700)
+	os.MkdirAll(results, 0700)
+
+	return onHook("not-used", &effectiveConfig{resultRoot: results, workspaceRoot: workspaces}, hookEvent{Owner: owner, Repo: repo}, nil, StubBuild)
 }
 
 func StubBuild(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
@@ -77,7 +89,7 @@ type testWorkSpaceBuilder struct {
 }
 
 func (tb *testWorkSpaceBuilder) PrepareWorkspace(basename string) (string, error) {
-	workSpacePath, err := createWorkspaceDirectory(tb.workspaceRoot, tb.owner, tb.repo, basename)
+	workSpacePath, err := inWorkspaceDirectory(tb.workspaceRoot, tb.owner, tb.repo, basename, func(s string) error { return nil })
 	pathsNames.workspacePath = workSpacePath
 	return workSpacePath, err
 }

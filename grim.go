@@ -176,16 +176,19 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 		return marshalErr
 	}
 
-	ioutil.WriteFile(hookFile, hookBytes, 0644)
-	return nil
+	return ioutil.WriteFile(hookFile, hookBytes, 0644)
 }
 
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
 	basename := getTimeStamp()
-	resultPath := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
+	resultPath, err := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
+	if err != nil {
+		return fatalGrimErrorf("error making result directory: %v", err)
+	}
 
-	// TODO: do something with this err
-	writeHookEvent(resultPath, hook)
+	if err := writeHookEvent(resultPath, hook); err != nil {
+		return fatalGrimErrorf("error writing hook event: %v", err)
+	}
 
 	notify(config, hook, "", GrimPending, logger)
 
