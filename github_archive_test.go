@@ -19,7 +19,7 @@ func TestUnarchiveRepo(t *testing.T) {
 	}
 	defer os.RemoveAll(f)
 	basename := getTimeStamp()
-	ws, err := createWorkspaceDirectory(f, "baz", "foo.bar", basename)
+	ws, err := inWorkspaceDirectory(f, "baz", "foo.bar", basename, func(s string) error { return nil })
 
 	if err != nil {
 		t.Errorf("|%v|", err)
