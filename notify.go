@@ -82,28 +82,22 @@ func notify(config *effectiveConfig, hook hookEvent, ws string, notification gri
 
 	context := buildContext(hook, ws, logDir)
 	message, color, err := notification.HipchatNotification(context, config)
-	sendToLogger(logger, message)
+	logger.Print(message)
 
 	if config.hipChatToken != "" && config.hipChatRoom != "" {
 		if err != nil {
-			sendToLogger(logger, fmt.Sprintf("Hipchat: Error while rendering message: %v", err))
+			logger.Printf("Hipchat: Error while rendering message: %v", err)
 			return err
 		}
 
 		err = sendMessageToRoom(config.hipChatToken, config.hipChatRoom, config.grimServerID, message, color)
 		if err != nil {
-			sendToLogger(logger, fmt.Sprintf("Hipchat: Error while sending message to room: %v", err))
+			logger.Printf("Hipchat: Error while sending message to room: %v", err)
 			return err
 		}
 	} else {
-		sendToLogger(logger, "HipChat: config.hipChatToken and config.hitChatRoom not set")
+		logger.Print("HipChat: config.hipChatToken and config.hitChatRoom not set")
 	}
 
 	return ghErr
-}
-
-func sendToLogger(logger *log.Logger, message string) {
-	if logger != nil {
-		logger.Print(message)
-	}
 }
