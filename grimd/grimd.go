@@ -38,7 +38,7 @@ func grimd(c *cli.Context) {
 	for {
 		select {
 		case <-throttle:
-			if err := g.BuildNextInGrimQueue(); err != nil {
+			if err := g.BuildNextInGrimQueue(logger); err != nil {
 				if grim.IsFatal(err) {
 					logger.Fatal(err)
 				} else {

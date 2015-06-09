@@ -59,7 +59,7 @@ func (pn *pathNames) isConsistent() (bool, error) {
 }
 
 func builtForHook(tempDir, owner, repo string, exitCode int) error {
-	return onHook("not-used", &effectiveConfig{resultRoot: tempDir, workspaceRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, StubBuild)
+	return onHook("not-used", &effectiveConfig{resultRoot: tempDir, workspaceRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, StubBuild)
 }
 
 func StubBuild(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
