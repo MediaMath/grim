@@ -1,11 +1,11 @@
 package grim
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
-	"fmt"
 	"time"
 )
 
@@ -33,7 +33,7 @@ func TestPreparePublicRepo(t *testing.T) {
 	defer os.RemoveAll(f)
 	basename := fmt.Sprintf("%v", time.Now().UnixNano())
 	clonePath := filepath.Join("foo", "bar", "baz")
-	ws, err := prepareWorkspace(token, f, clonePath, "MediaMath", "part", "eb78552e86dfead7f6506e6d35ae5db9fc078403",basename)
+	ws, err := prepareWorkspace(token, f, clonePath, "MediaMath", "part", "eb78552e86dfead7f6506e6d35ae5db9fc078403", basename)
 	if err != nil {
 		t.Errorf("|%v|", err)
 		t.FailNow()

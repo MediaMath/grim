@@ -108,5 +108,5 @@ func grimBuild(builder grimBuilder, resultPath, basename string) (*executeResult
 
 func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string, basename string) (*executeResult, string, error) {
 	ws := &workspaceBuilder{workspaceRoot, clonePath, token, configRoot, owner, repo, ref, extraEnv}
-	return grimBuild(ws, resultPath,basename)
+	return grimBuild(ws, resultPath, basename)
 }

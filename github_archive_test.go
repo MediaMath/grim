@@ -20,7 +20,7 @@ func TestUnarchiveRepo(t *testing.T) {
 	}
 	defer os.RemoveAll(f)
 	basename := fmt.Sprintf("%v", time.Now().UnixNano())
-	ws, err := createWorkspaceDirectory(f, "baz", "foo.bar",basename)
+	ws, err := createWorkspaceDirectory(f, "baz", "foo.bar", basename)
 
 	if err != nil {
 		t.Errorf("|%v|", err)
