@@ -1,12 +1,10 @@
 package grim
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -31,7 +29,7 @@ func TestPreparePublicRepo(t *testing.T) {
 		t.Errorf("|%v|", err)
 	}
 	defer os.RemoveAll(f)
-	basename := fmt.Sprintf("%v", time.Now().UnixNano())
+	basename := getTimeStamp()
 	clonePath := filepath.Join("foo", "bar", "baz")
 	ws, err := prepareWorkspace(token, f, clonePath, "MediaMath", "part", "eb78552e86dfead7f6506e6d35ae5db9fc078403", basename)
 	if err != nil {

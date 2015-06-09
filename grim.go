@@ -5,10 +5,8 @@ package grim
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"time"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -182,7 +180,7 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 }
 
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, action hookAction) error {
-	basename := fmt.Sprintf("%v", time.Now().UnixNano())
+	basename := getTimeStamp()
 	resultPath := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
 
 	// TODO: do something with this err too!
