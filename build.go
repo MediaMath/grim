@@ -11,13 +11,13 @@ import (
 )
 
 type grimBuilder interface {
-	PrepareWorkspace() (string, error)
+	PrepareWorkspace(basename string) (string, error)
 	FindBuildScript(workspacePath string) (string, error)
 	RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error)
 }
 
-func (ws *workspaceBuilder) PrepareWorkspace() (string, error) {
-	return prepareWorkspace(ws.token, ws.workspaceRoot, ws.clonePath, ws.owner, ws.repo, ws.ref)
+func (ws *workspaceBuilder) PrepareWorkspace(basename string) (string, error) {
+	return prepareWorkspace(ws.token, ws.workspaceRoot, ws.clonePath, ws.owner, ws.repo, ws.ref, basename)
 }
 
 func (ws *workspaceBuilder) FindBuildScript(workspacePath string) (string, error) {
@@ -58,7 +58,7 @@ type workspaceBuilder struct {
 	extraEnv      []string
 }
 
-func grimBuild(builder grimBuilder, resultPath string) (*executeResult, string, error) {
+func grimBuild(builder grimBuilder, resultPath, basename string) (*executeResult, string, error) {
 
 	status, err := buildStatusFile(resultPath)
 	if err != nil {
@@ -66,7 +66,7 @@ func grimBuild(builder grimBuilder, resultPath string) (*executeResult, string, 
 	}
 	defer status.Close()
 
-	workspacePath, err := builder.PrepareWorkspace()
+	workspacePath, err := builder.PrepareWorkspace(basename)
 	if err != nil {
 		status.WriteString(fmt.Sprintf("failed to prepare workspace %s %v\n", workspacePath, err))
 		return nil, workspacePath, fmt.Errorf("failed to prepare workspace: %v", err)
@@ -106,7 +106,7 @@ func grimBuild(builder grimBuilder, resultPath string) (*executeResult, string, 
 	return result, workspacePath, nil
 }
 
-func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string) (*executeResult, string, error) {
+func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string, basename string) (*executeResult, string, error) {
 	ws := &workspaceBuilder{workspaceRoot, clonePath, token, configRoot, owner, repo, ref, extraEnv}
-	return grimBuild(ws, resultPath)
+	return grimBuild(ws, resultPath, basename)
 }

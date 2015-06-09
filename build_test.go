@@ -21,7 +21,7 @@ type testBuilder struct {
 	buildResult     *executeResult
 }
 
-func (tb *testBuilder) PrepareWorkspace() (string, error) {
+func (tb *testBuilder) PrepareWorkspace(basename string) (string, error) {
 	return tb.workspaceResult, tb.workspaceErr
 }
 func (tb *testBuilder) FindBuildScript(workspacePath string) (string, error) {
@@ -36,7 +36,7 @@ func TestOnBuildStatusFileError(t *testing.T) {
 	defer os.RemoveAll(resultPath)
 
 	tb := &testBuilder{workspaceErr: errors.New(""), workspaceResult: "@$@$"}
-	grimBuild(tb, resultPath)
+	grimBuild(tb, resultPath, "")
 
 	_, err := ioutil.ReadFile(resultPath + "/build.txt")
 	if err != nil {
@@ -49,7 +49,7 @@ func TestOnPrepareWorkspaceFailure(t *testing.T) {
 	defer os.RemoveAll(resultPath)
 
 	tb := &testBuilder{workspaceErr: errors.New(""), workspaceResult: "@$@$"}
-	grimBuild(tb, resultPath)
+	grimBuild(tb, resultPath, "")
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
 	if !strings.Contains(string(buildFile), "failed to prepare workspace @$@$") {
@@ -62,7 +62,7 @@ func TestOnBuildScriptFailure(t *testing.T) {
 	defer os.RemoveAll(resultPath)
 
 	tb := &testBuilder{buildScriptErr: errors.New("&^&^")}
-	grimBuild(tb, resultPath)
+	grimBuild(tb, resultPath, "")
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
 	buildText := string(buildFile)
@@ -81,7 +81,7 @@ func TestOnRunBuildScriptError(t *testing.T) {
 	defer os.RemoveAll(resultPath)
 
 	tb := &testBuilder{buildScriptPath: "!@#", buildErr: errors.New("^%$")} //buildResult: &executeResult{ExitCode: 0}}
-	grimBuild(tb, resultPath)
+	grimBuild(tb, resultPath, "")
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
 	buildText := string(buildFile)
@@ -107,7 +107,7 @@ func TestOnRunBuildScriptSuccess(t *testing.T) {
 	defer os.RemoveAll(resultPath)
 
 	tb := &testBuilder{buildScriptPath: "!@#", buildResult: &executeResult{ExitCode: 0}}
-	grimBuild(tb, resultPath)
+	grimBuild(tb, resultPath, "")
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
 	buildText := string(buildFile)
@@ -133,7 +133,7 @@ func TestOnRunBuildScriptFailure(t *testing.T) {
 	defer os.RemoveAll(resultPath)
 
 	tb := &testBuilder{buildScriptPath: "!@#", buildResult: &executeResult{ExitCode: 123123123}}
-	grimBuild(tb, resultPath)
+	grimBuild(tb, resultPath, "")
 
 	buildFile, _ := ioutil.ReadFile(resultPath + "/build.txt")
 	buildText := string(buildFile)

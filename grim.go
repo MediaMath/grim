@@ -5,11 +5,9 @@ package grim
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
-	"time"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -161,15 +159,15 @@ func (i *Instance) BuildRef(owner, repo, ref string, logger *log.Logger) error {
 	}, logger)
 }
 
-func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent) (*executeResult, string, error) {
-	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env())
+func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
+	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env(), basename)
 }
 
 func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger) error {
 	return onHook(configRoot, config, hook, logger, buildOnHook)
 }
 
-type hookAction func(string, string, *effectiveConfig, hookEvent) (*executeResult, string, error)
+type hookAction func(string, string, *effectiveConfig, hookEvent, string) (*executeResult, string, error)
 
 func writeHookEvent(resultPath string, hook hookEvent) error {
 	hookFile := filepath.Join(resultPath, "hook.json")
@@ -183,7 +181,7 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 }
 
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
-	basename := fmt.Sprintf("%v", time.Now().UnixNano())
+	basename := getTimeStamp()
 	resultPath := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
 
 	// TODO: do something with this err
@@ -191,7 +189,7 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *
 
 	notify(config, hook, "", GrimPending, logger)
 
-	result, ws, err := action(configRoot, resultPath, config, hook)
+	result, ws, err := action(configRoot, resultPath, config, hook, basename)
 	if err != nil {
 		notify(config, hook, ws, GrimError, logger)
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
