@@ -24,7 +24,11 @@ func prepareWorkspace(token, workspaceRoot, clonePath, owner, repo, ref, basenam
 }
 
 func createWorkspaceDirectory(workspaceRoot, owner, repo, basename string) (string, error) {
-	workspaceParent := makeTree(workspaceRoot, owner, repo)
+	workspaceParent, err := makeTree(workspaceRoot, owner, repo)
+	if err != nil {
+		return "", err
+	}
+
 	workspacePath := filepath.Join(workspaceParent, basename)
 	return workspacePath, nil
 }

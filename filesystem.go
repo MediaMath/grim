@@ -5,6 +5,7 @@ package grim
 // license that can be found in the LICENSE file.
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -14,18 +15,14 @@ const (
 	defaultFileMode      = 0600 // rw-------
 )
 
-func makeTree(parts ...string) string {
+func makeTree(parts ...string) (string, error) {
 	if len(parts) == 0 {
-		return ""
+		return "", fmt.Errorf("No tree provided")
 	}
 
-	path := ""
-	for i := range parts {
-		path = filepath.Join(path, parts[i])
-		os.Mkdir(path, defaultDirectoryMode)
-	}
-
-	return path
+	path := filepath.Join(parts...)
+	mkErr := os.MkdirAll(path, defaultDirectoryMode)
+	return path, mkErr
 }
 
 func fileExists(path string) bool {
