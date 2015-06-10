@@ -21,12 +21,20 @@ func (t *tokenSource) Token() (*oauth2.Token, error) {
 	return t.token, nil
 }
 
-func getClientForToken(token string) (*github.Client, error) {
+func getHttpClientForToken(token string) *http.Client {
+	if token == "" {
+		return nil
+	}
+
 	ts := &tokenSource{
 		&oauth2.Token{AccessToken: token},
 	}
 
-	tc := oauth2.NewClient(oauth2.NoContext, ts)
+	return oauth2.NewClient(oauth2.NoContext, ts)
+}
+
+func getClientForToken(token string) (*github.Client, error) {
+	tc := getHttpClientForToken(token)
 
 	ghc := github.NewClient(tc)
 	if ghc == nil {

@@ -1,4 +1,4 @@
-.PHONY:	grimd publish test test-long check clean run cover part ansible
+.PHONY:	grimd publish test check clean run cover part ansible
 
 # Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 # Use of this source code is governed by a BSD-style
@@ -29,11 +29,7 @@ tmp/grimd-$(VERSION).zip: grimd | tmp
 	zip -r -j $@ $(GOPATH)/bin/grimd
 
 test:
-	go test -short $(TEST_VERBOSITY) ./...
-
-test-long:
 	go test $(TEST_VERBOSITY) ./...
-
 
 part: 
 	go get -a github.com/MediaMath/part

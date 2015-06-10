@@ -291,9 +291,10 @@ func TestValidateEffectiveConfig(t *testing.T) {
 }
 
 func TestLoadGlobalConfig(t *testing.T) {
-	config, err := loadGlobalConfig("./test_config")
+	config, err := loadGlobalConfig("./test_data/config_test")
 	if err != nil {
 		t.Errorf("|%v|", err)
+		t.FailNow()
 	}
 
 	if ps(config.GrimServerID) != "def-serverid" {
@@ -302,9 +303,10 @@ func TestLoadGlobalConfig(t *testing.T) {
 }
 
 func TestLoadRepoConfig(t *testing.T) {
-	config, err := loadLocalConfig("./test_config", "MediaMath", "foo")
+	config, err := loadLocalConfig("./test_data/config_test", "MediaMath", "foo")
 	if err != nil {
 		t.Errorf("|%v|", err)
+		t.FailNow()
 	}
 
 	if ps(config.PathToCloneIn) != "go/src/github.com/MediaMath/foo" {
@@ -313,9 +315,10 @@ func TestLoadRepoConfig(t *testing.T) {
 }
 
 func TestLoadConfig(t *testing.T) {
-	config, err := loadConfig("./test_config/config.json")
+	config, err := loadConfig("./test_data/config_test/config.json")
 	if err != nil {
 		t.Errorf("|%v|", err)
+		t.FailNow()
 	}
 
 	if ps(config.HipChatRoom) != "def-hcroom" {
