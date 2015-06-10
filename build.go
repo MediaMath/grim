@@ -17,7 +17,17 @@ type grimBuilder interface {
 }
 
 func (ws *workspaceBuilder) PrepareWorkspace(basename string) (string, error) {
-	return prepareWorkspace(ws.token, ws.workspaceRoot, ws.clonePath, ws.owner, ws.repo, ws.ref, basename)
+	workspacePath, err := makeTree(ws.workspaceRoot, ws.owner, ws.repo, basename)
+	if err != nil {
+		return "", fmt.Errorf("failed to create workspace directory: %v", err)
+	}
+
+	_, err = cloneRepo(ws.token, workspacePath, ws.clonePath, ws.owner, ws.repo, ws.ref)
+	if err != nil {
+		return "", fmt.Errorf("failed to download repo archive: %v", err)
+	}
+
+	return workspacePath, nil
 }
 
 func (ws *workspaceBuilder) FindBuildScript(workspacePath string) (string, error) {
