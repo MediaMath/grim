@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,6 +13,61 @@ import (
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+func TestBuildRef(t *testing.T) {
+	if testing.Short() {
+		t.Skipf("Skipping prepare test in short mode.")
+	}
+
+	owner := "MediaMath"
+	repo := "grim"
+	ref := "test" //special grim branch
+	clonePath := "go/src/github.com/MediaMath/grim"
+
+	temp, _ := ioutil.TempDir("", "TestBuildRef")
+
+	configRoot := filepath.Join(temp, "config")
+	os.MkdirAll(filepath.Join(configRoot, owner, repo), 0700)
+
+	rr := filepath.Join(temp, "results")
+	ws := filepath.Join(temp, "ws")
+	bogus := "bogus"
+
+	grimConfig := &config{
+		ResultRoot:    &rr,
+		WorkspaceRoot: &ws,
+		AWSRegion:     &bogus,
+		AWSKey:        &bogus,
+		AWSSecret:     &bogus,
+	}
+
+	configJs, _ := json.Marshal(grimConfig)
+	ioutil.WriteFile(filepath.Join(configRoot, "config.json"), configJs, 0644)
+
+	localConfig := &config{PathToCloneIn: &clonePath}
+	localJs, _ := json.Marshal(localConfig)
+
+	ioutil.WriteFile(filepath.Join(configRoot, owner, repo, "config.json"), localJs, 0644)
+	var g Instance
+	g.SetConfigRoot(configRoot)
+
+	logfile, err := os.OpenFile(filepath.Join(temp, "log.txt"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		t.Fatalf("error opening file: %v", err)
+	}
+
+	logger := log.New(logfile, "", log.Ldate|log.Ltime)
+	buildErr := g.BuildRef(owner, repo, ref, logger)
+	logfile.Close()
+
+	if buildErr != nil {
+		t.Errorf("%v: %v", temp, buildErr)
+	}
+
+	if !t.Failed() {
+		os.RemoveAll(temp)
+	}
+}
+
 var testOwner = "MediaMath"
 var testRepo = "grim"
 
