@@ -28,7 +28,7 @@ func TestGlobalEffectiveSuccessTemplate(t *testing.T) {
 
 	none := &config{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.successTemplate != ps(templateForStartandSuccess("Success after")) {
+	if ec := buildGlobalEffectiveConfig(none); ec.successTemplate != ps(templateForSuccess()) {
 		t.Errorf("No defaulting %v", ec)
 	}
 }
@@ -56,7 +56,7 @@ func TestGlobalEffectivePendingTemplate(t *testing.T) {
 
 	none := &config{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.pendingTemplate != ps(templateForStartandSuccess("Starting")) {
+	if ec := buildGlobalEffectiveConfig(none); ec.pendingTemplate != ps(templateForStart()) {
 		t.Errorf("No defaulting %v", ec)
 	}
 }

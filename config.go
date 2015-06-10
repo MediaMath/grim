@@ -152,10 +152,10 @@ func buildGlobalEffectiveConfig(global *config) effectiveConfig {
 		gitHubToken:     firstNonEmptyStringPtr(global.GitHubToken),
 		hipChatRoom:     firstNonEmptyStringPtr(global.HipChatRoom),
 		hipChatToken:    firstNonEmptyStringPtr(global.HipChatToken),
-		pendingTemplate: firstNonEmptyStringPtr(global.PendingTemplate, templateForStartandSuccess("Starting")),
+		pendingTemplate: firstNonEmptyStringPtr(global.PendingTemplate, templateForStart()),
 		errorTemplate:   firstNonEmptyStringPtr(global.ErrorTemplate, templateForFailureandError("Error during")),
 		failureTemplate: firstNonEmptyStringPtr(global.FailureTemplate, templateForFailureandError("Failure during")),
-		successTemplate: firstNonEmptyStringPtr(global.SuccessTemplate, templateForStartandSuccess("Success after")),
+		successTemplate: firstNonEmptyStringPtr(global.SuccessTemplate, templateForSuccess()),
 	}
 }
 
@@ -185,8 +185,13 @@ func defaultTopicName(owner, repo string) *string {
 	return &snsTopicName
 }
 
-func templateForStartandSuccess(preamble string) *string {
-	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.Workspace}})", preamble)
+func templateForStart() *string {
+	s := fmt.Sprintf("Starting build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}}")
+	return &s
+}
+
+func templateForSuccess() *string {
+	s := fmt.Sprintf("Success after build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.Workspace}})")
 	return &s
 }
 
