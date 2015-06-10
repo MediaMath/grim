@@ -77,7 +77,7 @@ type testWorkSpaceBuilder struct {
 }
 
 func (tb *testWorkSpaceBuilder) PrepareWorkspace(basename string) (string, error) {
-	workSpacePath, err := createWorkspaceDirectory(tb.workspaceRoot, tb.owner, tb.repo, basename)
+	workSpacePath, err := makeTree(tb.workspaceRoot, tb.owner, tb.repo, basename)
 	pathsNames.workspacePath = workSpacePath
 	return workSpacePath, err
 }

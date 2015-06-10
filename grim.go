@@ -182,7 +182,10 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
 	basename := getTimeStamp()
-	resultPath := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
+	resultPath, err := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
+	if err != nil {
+		return fatalGrimErrorf("error creating result path: %v", err)
+	}
 
 	// TODO: do something with this err
 	writeHookEvent(resultPath, hook)
