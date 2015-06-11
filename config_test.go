@@ -109,7 +109,7 @@ func TestGlobalEffectiveResultRoot(t *testing.T) {
 	}
 }
 
-func TstGlobalEffectiveGrimQueueName(t *testing.T) {
+func TestGlobalEffectiveGrimQueueName(t *testing.T) {
 	global := &config{GrimQueueName: s("queue")}
 
 	if ec := buildGlobalEffectiveConfig(global); ec.grimQueueName != "queue" {
@@ -380,5 +380,38 @@ func TestStringPtrNotEmpty(t *testing.T) {
 
 	if !stringPtrNotEmpty(&testNotEmpty) {
 		t.Errorf("Thinks not empty is")
+	}
+}
+
+func TestBHandMMCanBuildByDefault(t *testing.T) {
+	config, err := getEffectiveConfig("./test_data/config_test", "MediaMath", "foo")
+	if err != nil {
+		t.Fatalf("|%v|", err)
+	}
+
+	if !config.usernameCanBuild("bhand-mm") {
+		t.Fatal("bhand-mm should be able to build")
+	}
+}
+
+func TestBHandMMCanBuild(t *testing.T) {
+	config, err := getEffectiveConfig("./test_data/config_test", "MediaMath", "bar")
+	if err != nil {
+		t.Fatalf("|%v|", err)
+	}
+
+	if !config.usernameCanBuild("bhand-mm") {
+		t.Fatal("bhand-mm should be able to build")
+	}
+}
+
+func TestKKlipschCantBuild(t *testing.T) {
+	config, err := getEffectiveConfig("./test_data/config_test", "MediaMath", "bar")
+	if err != nil {
+		t.Fatalf("|%v|", err)
+	}
+
+	if config.usernameCanBuild("kklipsch") {
+		t.Fatal("kklipsch should not be able to build")
 	}
 }

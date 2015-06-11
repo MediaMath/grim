@@ -137,7 +137,10 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 			return grimErrorf("error while reading config: %v", err)
 		}
 
-		return buildForHook(configRoot, localConfig, *hook, logger)
+		if localConfig.usernameCanBuild(hook.UserName) {
+			return buildForHook(configRoot, localConfig, *hook, logger)
+		}
+		return grimErrorf("username %q is not permitted to build", hook.UserName)
 	}
 
 	return nil

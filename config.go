@@ -25,41 +25,43 @@ var (
 )
 
 type config struct {
-	GrimQueueName   *string
-	ResultRoot      *string
-	WorkspaceRoot   *string
-	AWSRegion       *string
-	AWSKey          *string
-	AWSSecret       *string
-	GitHubToken     *string
-	PathToCloneIn   *string
-	SnsTopicName    *string
-	HipChatRoom     *string
-	HipChatToken    *string
-	GrimServerID    *string
-	PendingTemplate *string
-	ErrorTemplate   *string
-	SuccessTemplate *string
-	FailureTemplate *string
+	GrimQueueName     *string
+	ResultRoot        *string
+	WorkspaceRoot     *string
+	AWSRegion         *string
+	AWSKey            *string
+	AWSSecret         *string
+	GitHubToken       *string
+	PathToCloneIn     *string
+	SnsTopicName      *string
+	HipChatRoom       *string
+	HipChatToken      *string
+	GrimServerID      *string
+	PendingTemplate   *string
+	ErrorTemplate     *string
+	SuccessTemplate   *string
+	FailureTemplate   *string
+	UsernameWhitelist []string
 }
 
 type effectiveConfig struct {
-	grimQueueName   string
-	resultRoot      string
-	workspaceRoot   string
-	awsRegion       string
-	awsKey          string
-	awsSecret       string
-	gitHubToken     string
-	pathToCloneIn   string
-	snsTopicName    string
-	hipChatRoom     string
-	hipChatToken    string
-	grimServerID    string
-	pendingTemplate string
-	errorTemplate   string
-	successTemplate string
-	failureTemplate string
+	grimQueueName     string
+	resultRoot        string
+	workspaceRoot     string
+	awsRegion         string
+	awsKey            string
+	awsSecret         string
+	gitHubToken       string
+	pathToCloneIn     string
+	snsTopicName      string
+	hipChatRoom       string
+	hipChatToken      string
+	grimServerID      string
+	pendingTemplate   string
+	errorTemplate     string
+	successTemplate   string
+	failureTemplate   string
+	usernameWhitelist []string
 }
 
 type repo struct {
@@ -161,22 +163,23 @@ func buildGlobalEffectiveConfig(global *config) effectiveConfig {
 
 func buildLocalEffectiveConfig(global effectiveConfig, local *config, owner, repo string) effectiveConfig {
 	return effectiveConfig{
-		grimQueueName:   global.grimQueueName,
-		resultRoot:      global.resultRoot,
-		workspaceRoot:   global.workspaceRoot,
-		awsRegion:       global.awsRegion,
-		awsKey:          global.awsKey,
-		awsSecret:       global.awsSecret,
-		grimServerID:    global.grimServerID,
-		gitHubToken:     firstNonEmptyStringPtr(local.GitHubToken, &global.gitHubToken),
-		hipChatRoom:     firstNonEmptyStringPtr(local.HipChatRoom, &global.hipChatRoom),
-		hipChatToken:    firstNonEmptyStringPtr(local.HipChatToken, &global.hipChatToken),
-		pendingTemplate: firstNonEmptyStringPtr(local.PendingTemplate, &global.pendingTemplate),
-		successTemplate: firstNonEmptyStringPtr(local.SuccessTemplate, &global.successTemplate),
-		errorTemplate:   firstNonEmptyStringPtr(local.ErrorTemplate, &global.errorTemplate),
-		failureTemplate: firstNonEmptyStringPtr(local.FailureTemplate, &global.failureTemplate),
-		pathToCloneIn:   firstNonEmptyStringPtr(local.PathToCloneIn),
-		snsTopicName:    firstNonEmptyStringPtr(local.SnsTopicName, defaultTopicName(owner, repo)),
+		grimQueueName:     global.grimQueueName,
+		resultRoot:        global.resultRoot,
+		workspaceRoot:     global.workspaceRoot,
+		awsRegion:         global.awsRegion,
+		awsKey:            global.awsKey,
+		awsSecret:         global.awsSecret,
+		grimServerID:      global.grimServerID,
+		gitHubToken:       firstNonEmptyStringPtr(local.GitHubToken, &global.gitHubToken),
+		hipChatRoom:       firstNonEmptyStringPtr(local.HipChatRoom, &global.hipChatRoom),
+		hipChatToken:      firstNonEmptyStringPtr(local.HipChatToken, &global.hipChatToken),
+		pendingTemplate:   firstNonEmptyStringPtr(local.PendingTemplate, &global.pendingTemplate),
+		successTemplate:   firstNonEmptyStringPtr(local.SuccessTemplate, &global.successTemplate),
+		errorTemplate:     firstNonEmptyStringPtr(local.ErrorTemplate, &global.errorTemplate),
+		failureTemplate:   firstNonEmptyStringPtr(local.FailureTemplate, &global.failureTemplate),
+		pathToCloneIn:     firstNonEmptyStringPtr(local.PathToCloneIn),
+		snsTopicName:      firstNonEmptyStringPtr(local.SnsTopicName, defaultTopicName(owner, repo)),
+		usernameWhitelist: local.UsernameWhitelist,
 	}
 }
 
@@ -256,4 +259,21 @@ func firstNonEmptyStringPtr(strPtrs ...*string) string {
 
 func stringPtrNotEmpty(strPtr *string) bool {
 	return strPtr != nil && *strPtr != ""
+}
+
+func (ec *effectiveConfig) usernameCanBuild(username string) (allowed bool) {
+	wlLen := len(ec.usernameWhitelist)
+
+	if ec.usernameWhitelist == nil || wlLen == 0 {
+		allowed = true
+	} else {
+		for i := 0; i < wlLen; i++ {
+			if ec.usernameWhitelist[i] == username {
+				allowed = true
+				break
+			}
+		}
+	}
+
+	return
 }
