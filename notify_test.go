@@ -37,7 +37,7 @@ func TestLoggingHipChatIncompleteSetup(t *testing.T) {
 	var buf bytes.Buffer
 	logger := log.New(&buf, "", log.Lshortfile)
 
-	notify(testConfig, testHook, "", GrimPending, logger)
+	notify(testConfig, testHook, "", "", GrimPending, logger)
 	message := fmt.Sprintf("%v", &buf)
 
 	if !strings.Contains(message, "pending MediaMath") {
@@ -59,7 +59,7 @@ func TestLoggingHipChatErrorCreatingMessage(t *testing.T) {
 		hipChatRoom: "NON_EMPTY",
 	}
 
-	notify(testConfigWithHC, testHook, "", GrimPending, logger)
+	notify(testConfigWithHC, testHook, "", "", GrimPending, logger)
 	message := fmt.Sprintf("%v", &buf)
 
 	if !strings.Contains(message, "Hipchat: Error while rendering message") {
@@ -77,7 +77,7 @@ func TestLoggingHipChatErrorSendingMessage(t *testing.T) {
 		hipChatRoom: "NON_EMPTY",
 	}
 
-	notify(testConfigWithHC, testHook, "", GrimPending, logger)
+	notify(testConfigWithHC, testHook, "", "", GrimPending, logger)
 	message := fmt.Sprintf("%v", &buf)
 
 	if !strings.Contains(message, "pending MediaMath") {
@@ -86,6 +86,24 @@ func TestLoggingHipChatErrorSendingMessage(t *testing.T) {
 
 	if !strings.Contains(message, "Hipchat: Error while sending message to room") {
 		t.Errorf("Failed to log error in sending to room")
+	}
+}
+
+func TestLogDirForBasename(t *testing.T) {
+	var buf bytes.Buffer
+	logger := log.New(&buf, "", log.Lshortfile)
+
+	testConfigWithHC := &effectiveConfig{
+		errorTemplate: "error {{.LogDir}}",
+		hipChatToken: "NOT_EMPTY",
+		hipChatRoom: "NON_EMPTY",
+	}
+
+	notify(testConfigWithHC, testHook, "", "temp/MediaMath/grim/123123", GrimError, logger)
+	message := fmt.Sprintf("%v", &buf)
+
+	if !strings.Contains(message, "error temp/MediaMath/grim/123123") {
+		t.Errorf("Failed to log proper log directory")
 	}
 }
 

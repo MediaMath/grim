@@ -193,19 +193,19 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *
 	// TODO: do something with this err
 	writeHookEvent(resultPath, hook)
 
-	notify(config, hook, "", GrimPending, logger)
+	notify(config, hook, "", resultPath, GrimPending, logger)
 
 	result, ws, err := action(configRoot, resultPath, config, hook, basename)
 	if err != nil {
-		notify(config, hook, ws, GrimError, logger)
+		notify(config, hook, ws, resultPath, GrimError, logger)
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
 	}
 
 	var notifyError error
 	if result.ExitCode == 0 {
-		notifyError = notify(config, hook, ws, GrimSuccess, logger)
+		notifyError = notify(config, hook, ws, resultPath, GrimSuccess, logger)
 	} else {
-		notifyError = notify(config, hook, ws, GrimFailure, logger)
+		notifyError = notify(config, hook, ws, resultPath, GrimFailure, logger)
 	}
 
 	return notifyError
