@@ -120,7 +120,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 		}
 
 		if !repoIsAlive(hook) {
-			return fmt.Errorf("Deleted Branched Detected, ignored")
+			return fmt.Errorf("Deleted Branched Detected, ignored branch build: %v", hook.Target)
 		}
 
 		if !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize" || repoIsAlive(hook) == true)) {
