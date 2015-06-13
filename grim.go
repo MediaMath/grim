@@ -5,6 +5,7 @@ package grim
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -118,6 +119,10 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 			return grimErrorf("error extracting hook from message: %v", err)
 		}
 
+		if !repoIsAlive(hook) {
+			return nil
+		}
+
 		if !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize" || repoIsAlive(hook) == true)) {
 			return nil
 		}
@@ -150,6 +155,7 @@ func repoIsAlive(hook *hookEvent) bool {
 	url := hook.URL
 	if len(url) >= 12 {
 		lastCommitNum := url[len(url)-12 : len(url)]
+		fmt.Println(lastCommitNum)
 		if lastCommitNum == "000000000000" {
 			return false
 		}
