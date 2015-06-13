@@ -5,6 +5,7 @@ package grim
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -119,7 +120,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 		}
 
 		if !repoIsAlive(hook) {
-			return nil
+			return fmt.Errorf("Deleted Branched Detected, ignored")
 		}
 
 		if !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize" || repoIsAlive(hook) == true)) {
