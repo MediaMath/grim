@@ -53,6 +53,26 @@ func TestPullRequestHook(t *testing.T) {
 	failIfDifferent(t, *hook, expected)
 }
 
+func TestCanDetectDeletedBranch(t *testing.T) {
+	//this is a deleted branch
+	deletedBranchEvent := hookEvent{
+		EventName: "push",
+		Action:    "reopened",
+		UserName:  "bluebyte60",
+		Owner:     "MediaMath",
+		Repo:      "grim",
+		Target:    "master",
+		Ref:       "",
+		StatusRef: "566f52c6f30600abe63cd43ffbb74a2da30dba68",
+		URL:       "https://github.com/bluebytes60/grim/compare/9083746e8e7e...000000000000",
+		PrNumber:  34,
+	}
+	//this should return false
+	if repoIsAlive(&deletedBranchEvent) == true {
+		t.Fatalf("fail to detect deleted branch")
+	}
+}
+
 func failIfDifferent(t *testing.T, first, second hookEvent) {
 	firstStr := fmt.Sprintf("%+v", first)
 	secondStr := fmt.Sprintf("%+v", second)
