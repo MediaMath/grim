@@ -5,7 +5,6 @@ package grim
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -155,8 +154,7 @@ func repoIsAlive(hook *hookEvent) bool {
 	url := hook.URL
 	if len(url) >= 12 {
 		lastCommitNum := url[len(url)-12 : len(url)]
-		fmt.Println(lastCommitNum)
-		if lastCommitNum == "000000000000" {
+		if lastCommitNum == "000000000000" { //if last 12 digits is zero, it's a deleted branch
 			return false
 		}
 	}
