@@ -23,6 +23,7 @@ type hookEvent struct {
 	StatusRef string
 	URL       string
 	PrNumber  int64
+	Deleted   bool
 }
 
 func (hook hookEvent) Describe() string {
@@ -66,6 +67,7 @@ type githubHook struct {
 	// Push fields
 	Ref        string `json:"ref"`
 	Compare    string `json:"compare"`
+	Deleted    bool   `json:"deleted"`
 	HeadCommit struct {
 		ID string `json:"id"`
 	} `json:"head_commit"`
@@ -104,7 +106,7 @@ func extractHookEvent(body string) (*hookEvent, error) {
 
 	hook.UserName = parsed.Sender.Login
 	hook.Repo = parsed.Repository.Name
-
+	hook.Deleted = parsed.Deleted
 	if parsed.Action != "" {
 		hook.EventName = "pull_request"
 		hook.Action = parsed.Action

@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"strconv"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -118,6 +119,8 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 		if err != nil {
 			return grimErrorf("error extracting hook from message: %v", err)
 		}
+
+		fmt.Println("Repo is deleted:" + strconv.FormatBool(hook.Deleted))
 
 		if !repoIsAlive(hook) {
 			return fmt.Errorf("Deleted Branched Detected, ignored branch build: %v", hook.Target)
