@@ -123,7 +123,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 			return fmt.Errorf("Deleted Branched Detected, ignored branch build: %v", hook.Target)
 		}
 
-		if !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize" || repoIsAlive(hook) == true)) {
+		if !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize")) {
 			return nil
 		}
 
@@ -153,13 +153,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 
 func repoIsAlive(hook *hookEvent) bool {
 	url := hook.URL
-	if len(url) >= 12 {
-		lastCommitNum := url[len(url)-12 : len(url)]
-		if lastCommitNum == "000000000000" { //if last 12 digits is zero, it's a deleted branch
-			return false
-		}
-	}
-	return true //default is true
+	return len(url) >= 12 && url[len(url)-12:] != "000000000000"
 }
 
 // BuildRef builds a git ref immediately.

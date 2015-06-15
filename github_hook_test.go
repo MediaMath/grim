@@ -54,7 +54,7 @@ func TestPullRequestHook(t *testing.T) {
 }
 
 func TestCanDetectDeletedBranch(t *testing.T) {
-	//this is a deleted branch
+	//this is a deleted branch, the last 12 digits in URL will be "000000000000"
 	deletedBranchEvent := hookEvent{
 		EventName: "push",
 		Action:    "reopened",
@@ -67,8 +67,8 @@ func TestCanDetectDeletedBranch(t *testing.T) {
 		URL:       "https://github.com/bluebytes60/grim/compare/9083746e8e7e...000000000000",
 		PrNumber:  34,
 	}
-	//this should return false
-	if repoIsAlive(&deletedBranchEvent) == true {
+
+	if repoIsAlive(&deletedBranchEvent) {
 		t.Fatalf("fail to detect deleted branch")
 	}
 }
