@@ -118,7 +118,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 			return grimErrorf("error extracting hook from message: %v", err)
 		}
 
-		if !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize")) {
+		if hook.Deleted || !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize")) {
 			return nil
 		}
 
