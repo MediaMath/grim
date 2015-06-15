@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
-	"strconv"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -120,9 +119,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 			return grimErrorf("error extracting hook from message: %v", err)
 		}
 
-		fmt.Println("Repo is deleted:" + strconv.FormatBool(hook.Deleted))
-
-		if !repoIsAlive(hook) {
+		if hook.Deleted {
 			return fmt.Errorf("Deleted Branched Detected, ignored branch build: %v", hook.Target)
 		}
 
@@ -152,11 +149,6 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 	}
 
 	return nil
-}
-
-func repoIsAlive(hook *hookEvent) bool {
-	url := hook.URL
-	return len(url) >= 12 && url[len(url)-12:] != "000000000000"
 }
 
 // BuildRef builds a git ref immediately.
