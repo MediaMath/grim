@@ -17,7 +17,7 @@ func grimd(c *cli.Context) {
 	g := global(c)
 	logger := getLogger()
 
-	if err := g.PrepareGrimQueue(); grim.IsFatal(err) {
+	if err := g.PrepareGrimQueue(logger); grim.IsFatal(err) {
 		logger.Fatal(err)
 	} else if err != nil {
 		logger.Print(err)
