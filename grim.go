@@ -117,9 +117,20 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 		if err != nil {
 			return grimErrorf("error extracting hook from message: %v", err)
 		}
+		logger.Print(hook.Describe() + "\n")
 
-		if hook.Deleted || !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize")) {
+		if hook.Deleted {
+			logger.Print("hook was not built because it was on a deleted branch\n")
 			return nil
+		}
+		if hook.EventName == "push" {
+			logger.Print("hook was built because the hook EventName was a push\n")
+		} else {
+			if !(hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize") {
+				logger.Printf("hook was not built because the action: %q was not 'opened', 'reopened', or 'synchronize'\n", hook.Action)
+				return nil
+			}
+			logger.Printf("hook was built because the hook EventName was a pull_request with action: %q\n", hook.Action)
 		}
 
 		if hook.EventName == "pull_request" {
