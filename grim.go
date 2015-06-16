@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"fmt"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -118,9 +119,10 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 			return grimErrorf("error extracting hook from message: %v", err)
 		}
 
-		if hook.Deleted || !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize")) {
-			return nil
+		if skipReason := shouldSkip(hook); skipReason != nil {
+			logger.Printf("hook skipped %v: %s\n", skipReason, hook.Describe())
 		}
+		logger.Printf("hook built: %s\n", hook.Describe())
 
 		if hook.EventName == "pull_request" {
 			sha, err := pollForMergeCommitSha(globalConfig.gitHubToken, hook.Owner, hook.Repo, hook.PrNumber)
@@ -217,4 +219,21 @@ func (i *Instance) checkGrimQueue() error {
 	}
 
 	return nil
+}
+
+func shouldSkip(hook *hookEvent) *string {
+	message := ""
+	if hook.Deleted {
+		message = fmt.Sprintf("because it was on a deleted branch")
+		return &message
+	}
+	if hook.EventName == "push" {
+		return nil
+	} else {
+		if !(hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize") {
+			message = fmt.Sprintf("because the action: %q was not 'opened', 'reopened', or 'synchronize'", hook.Action)
+			return &message
+		}
+		return nil
+	}
 }
