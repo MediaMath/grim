@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"fmt"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -27,12 +28,16 @@ func (i *Instance) SetConfigRoot(path string) {
 }
 
 // PrepareGrimQueue creates or reuses the Amazon SQS queue named in the config.
-func (i *Instance) PrepareGrimQueue() error {
+func (i *Instance) PrepareGrimQueue(logger *log.Logger) error {
 	configRoot := getEffectiveConfigRoot(i.configRoot)
 
 	config, err := getEffectiveGlobalConfig(configRoot)
 	if err != nil {
 		return fatalGrimErrorf("error while reading config: %v", err)
+	}
+
+	if config.origServerID != config.grimServerID {
+		logger.Printf(buildTruncatedMessage(config.truncateID))
 	}
 
 	queue, err := prepareSQSQueue(config.awsKey, config.awsSecret, config.awsRegion, config.grimQueueName)
@@ -217,4 +222,12 @@ func (i *Instance) checkGrimQueue() error {
 	}
 
 	return nil
+}
+
+const truncatedMessage = `%q shouldn't be over 15 characters and has been truncated
+Please update your config.json file to have a shorter %q.
+Or to use the server defaults, remove the entry %q`
+
+func buildTruncatedMessage(truncateID string) string {
+	return fmt.Sprintf(truncatedMessage, truncateID, truncateID, truncateID)
 }

@@ -8,11 +8,41 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"bytes"
+	"strings"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
+func TestTruncatedGrimServerID(t *testing.T) {
+	var buf bytes.Buffer
+	logger := log.New(&buf, "", log.Lshortfile)
+
+	tempDir, err := ioutil.TempDir("", "TestTruncatedGrimServerID")
+	if err != nil {
+		t.Errorf("|%v|", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// GrimQueueName is set to be 20 chars long, which should get truncated
+	configJS := `{"GrimQueueName":"12345678901234567890","AWSRegion":"empty","AWSKey":"empty","AWSSecret":"empty"}`
+	ioutil.WriteFile(filepath.Join(tempDir, "config.json"), []byte(configJS), 0644)
+
+	g := &Instance{
+		configRoot : &tempDir,
+		queue      : nil,
+	}
+
+	g.PrepareGrimQueue(logger)
+	message := fmt.Sprintf("%v", &buf)
+
+	if !strings.Contains(message, buildTruncatedMessage("GrimQueueName")) {
+		t.Errorf("Failed to log truncation of grimServerID")
+	}
+}
+
 func TestBuildRef(t *testing.T) {
 	if testing.Short() {
 		t.Skipf("Skipping prepare test in short mode.")

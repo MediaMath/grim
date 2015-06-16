@@ -57,6 +57,8 @@ type effectiveConfig struct {
 	hipChatRoom       string
 	hipChatToken      string
 	grimServerID      string
+	origServerID      string
+	truncateID        string
 	pendingTemplate   string
 	errorTemplate     string
 	successTemplate   string
@@ -143,11 +145,26 @@ func getEffectiveConfig(configRoot, owner, repo string) (*effectiveConfig, error
 }
 
 func buildGlobalEffectiveConfig(global *config) effectiveConfig {
+	origServerID := firstNonEmptyStringPtr(global.GrimServerID, global.GrimQueueName, &defaultGrimQueueName)
+	truncatedServerID := origServerID
+	truncateID := ""
+
+	if len(truncatedServerID) > 15 {
+		truncatedServerID = fmt.Sprintf("%s", origServerID[:15])
+
+		truncateID = "GrimServerID"
+		if !stringPtrNotEmpty(global.GrimServerID) {
+			truncateID = "GrimQueueName"
+		}
+	}
+
 	return effectiveConfig{
 		grimQueueName:   firstNonEmptyStringPtr(global.GrimQueueName, &defaultGrimQueueName),
 		resultRoot:      firstNonEmptyStringPtr(global.ResultRoot, &defaultResultRoot),
 		workspaceRoot:   firstNonEmptyStringPtr(global.WorkspaceRoot, &defaultWorkspaceRoot),
-		grimServerID:    firstNonEmptyStringPtr(global.GrimServerID, global.GrimQueueName, &defaultGrimQueueName),
+		grimServerID:    truncatedServerID,
+		origServerID:    origServerID,
+		truncateID:      truncateID,
 		awsRegion:       firstNonEmptyStringPtr(global.AWSRegion),
 		awsKey:          firstNonEmptyStringPtr(global.AWSKey),
 		awsSecret:       firstNonEmptyStringPtr(global.AWSSecret),
