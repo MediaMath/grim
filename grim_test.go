@@ -1,6 +1,7 @@
 package grim
 
 import (
+	"time"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -41,6 +42,48 @@ func TestTruncatedGrimServerID(t *testing.T) {
 	if !strings.Contains(message, buildTruncatedMessage("GrimQueueName")) {
 		t.Errorf("Failed to log truncation of grimServerID")
 	}
+}
+
+func TestTimeOutConfig(t *testing.T) {
+	if testing.Short() {
+		t.Skipf("Skipping prepare test in short mode.")
+	}
+
+	tempDir, err := ioutil.TempDir("", "TestTimeOut")
+	if err != nil {
+		t.Errorf("|%v|", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	configJS := `{"Timeout":4,"AWSRegion":"empty","AWSKey":"empty","AWSSecret":"empty"}`
+	ioutil.WriteFile(filepath.Join(tempDir, "config.json"), []byte(configJS), 0644)
+
+	config, err := getEffectiveGlobalConfig(tempDir)
+	if err != nil {
+		t.Errorf("|%v|", err)
+	}
+	config.resultRoot = tempDir
+	if config.timeout == defaultTimeOutSeconds {
+		t.Errorf("Failed to use non default timeout time")
+	}
+
+	err = doWaitAction(config, testOwner, testRepo, 10)
+	errMess := fmt.Sprintf("%v",err)
+	if errMess != "Build Timeout" {
+		t.Errorf("Failed to timeout")
+	}
+
+	err = doWaitAction(config, testOwner, testRepo, 2)
+	if err != nil {
+		t.Errorf("Failed to not timeout")
+	}
+}
+
+func doWaitAction(config *effectiveConfig, owner, repo string, wait int) error {
+	return onHook("not-used", config, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
+		time.Sleep(time.Duration(wait) * time.Second)
+		return &executeResult{ExitCode: 0}, "", nil
+	})
 }
 
 func TestBuildRef(t *testing.T) {

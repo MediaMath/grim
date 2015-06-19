@@ -9,6 +9,7 @@ import (
 	"log"
 	"path/filepath"
 	"fmt"
+	"time"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -189,6 +190,26 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 }
 
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
+	build := make(chan bool, 1)
+
+	var buildResult error
+	go func() {
+		buildResult = onHookBuild(configRoot, config, hook, build, logger, action)
+	}()
+	select {
+	case <-build:
+		return buildResult
+	case <- time.After(time.Second * time.Duration(config.timeout)):
+		return fmt.Errorf("Build Timeout")
+	}
+}
+
+func setChanTrue(channel chan bool) {
+	channel <- true
+}
+
+func onHookBuild(configRoot string, config *effectiveConfig, hook hookEvent, build chan bool, logger *log.Logger, action hookAction) error {
+	defer setChanTrue(build)
 	basename := getTimeStamp()
 	resultPath, err := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
 	if err != nil {
