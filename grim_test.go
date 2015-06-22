@@ -212,6 +212,36 @@ func TestHookGetsLogged(t *testing.T) {
 
 }
 
+func TestShouldSkip(t *testing.T) {
+	var skipTests = []struct {
+		in    *hookEvent
+		retn  bool // True for nil, False for not nil
+	}{
+		{&hookEvent{Deleted: true}, false},
+		{&hookEvent{Deleted: true, EventName: "push"}, false},
+		{&hookEvent{Deleted: true, EventName: "pull_request"}, false},
+		{&hookEvent{Deleted: true, EventName: "pull_request", Action: "reopened"}, false},
+		{&hookEvent{EventName: "push"}, true},
+		{&hookEvent{EventName: "push", Action: "opened"}, true},
+		{&hookEvent{EventName: "push", Action: "doesn't matter"}, true},
+		{&hookEvent{EventName: "pull_request", Action: "opened"}, true},
+		{&hookEvent{EventName: "pull_request", Action: "reopened"}, true},
+		{&hookEvent{EventName: "pull_request", Action: "synchronize"}, true},
+		{&hookEvent{EventName: "pull_request", Action: "matters"}, false},
+		{&hookEvent{EventName: "issue", Action: "opened"}, false},
+	}
+	for _, sT := range skipTests  {
+		message := shouldSkip(sT.in)
+		if XOR(message == nil, sT.retn) {
+			t.Errorf("Failed test for hook with params<Deleted:%t,EventName:%v,Action:%v> with message:%d", sT.in.Deleted, sT.in.EventName, sT.in.Action, message)
+		}
+	}
+}
+
+func XOR(a, b bool) bool {
+	return a != b
+}
+
 func doNothingAction(tempDir, owner, repo string, exitCode int, returnedErr error) error {
 	return onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
 		return &executeResult{ExitCode: exitCode}, "", returnedErr
