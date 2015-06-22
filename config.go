@@ -18,6 +18,7 @@ var (
 	defaultConfigRoot         = "/etc/grim"
 	defaultResultRoot         = "/var/log/grim"
 	defaultWorkspaceRoot      = "/var/tmp/grim"
+	defaultTimeOutSeconds	  = 30
 	configFileName            = "config.json"
 	buildScriptName           = "build.sh"
 	repoBuildScriptName       = "grim_build.sh"
@@ -41,6 +42,7 @@ type config struct {
 	ErrorTemplate     *string
 	SuccessTemplate   *string
 	FailureTemplate   *string
+	Timeout           int
 	UsernameWhitelist []string
 }
 
@@ -63,6 +65,7 @@ type effectiveConfig struct {
 	errorTemplate     string
 	successTemplate   string
 	failureTemplate   string
+	timeout           int
 	usernameWhitelist []string
 }
 
@@ -175,6 +178,7 @@ func buildGlobalEffectiveConfig(global *config) effectiveConfig {
 		errorTemplate:   firstNonEmptyStringPtr(global.ErrorTemplate, templateForFailureandError("Error during")),
 		failureTemplate: firstNonEmptyStringPtr(global.FailureTemplate, templateForFailureandError("Failure during")),
 		successTemplate: firstNonEmptyStringPtr(global.SuccessTemplate, templateForSuccess()),
+		timeout:         firstNonZeroInt(global.Timeout, defaultTimeOutSeconds),
 	}
 }
 
@@ -196,6 +200,7 @@ func buildLocalEffectiveConfig(global effectiveConfig, local *config, owner, rep
 		failureTemplate:   firstNonEmptyStringPtr(local.FailureTemplate, &global.failureTemplate),
 		pathToCloneIn:     firstNonEmptyStringPtr(local.PathToCloneIn),
 		snsTopicName:      firstNonEmptyStringPtr(local.SnsTopicName, defaultTopicName(owner, repo)),
+		timeout:           firstNonZeroInt(local.Timeout, global.timeout),
 		usernameWhitelist: local.UsernameWhitelist,
 	}
 }
@@ -262,6 +267,15 @@ func loadConfig(path string) (*config, error) {
 	}
 
 	return c, nil
+}
+
+func firstNonZeroInt(ints ...int) int {
+	for _, value := range ints {
+		if value > 0 {
+			return value
+		}
+	}
+	return 0
 }
 
 func firstNonEmptyStringPtr(strPtrs ...*string) string {
