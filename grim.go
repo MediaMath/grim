@@ -190,26 +190,22 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 }
 
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
-	build := make(chan bool, 1)
+	build := make(chan error, 1)
+	defer close(build)
 
-	var buildResult error
 	go func() {
-		buildResult = onHookBuild(configRoot, config, hook, build, logger, action)
+		build <- onHookBuild(configRoot, config, hook, logger, action)
 	}()
+
 	select {
-	case <-build:
-		return buildResult
+	case err := <-build:
+		return err
 	case <- time.After(time.Second * time.Duration(config.timeout)):
 		return fmt.Errorf("Build Timeout")
 	}
 }
 
-func setChanTrue(channel chan bool) {
-	channel <- true
-}
-
-func onHookBuild(configRoot string, config *effectiveConfig, hook hookEvent, build chan bool, logger *log.Logger, action hookAction) error {
-	defer setChanTrue(build)
+func onHookBuild(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
 	basename := getTimeStamp()
 	resultPath, err := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
 	if err != nil {

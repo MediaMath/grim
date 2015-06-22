@@ -82,7 +82,7 @@ func TestTimeOutConfig(t *testing.T) {
 func doWaitAction(config *effectiveConfig, owner, repo string, wait int) error {
 	return onHook("not-used", config, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
 		time.Sleep(time.Duration(wait) * time.Second)
-		return &executeResult{ExitCode: 0}, "", nil
+		return &executeResult{}, "", nil
 	})
 }
 
