@@ -169,6 +169,40 @@ func TestHookGetsLogged(t *testing.T) {
 
 }
 
+func TestShouldSkip(t *testing.T) {
+	hook1 := &hookEvent{ //should return a *string
+		Deleted: true,
+		EventName: "push",
+	}
+	hook2 := &hookEvent{ //should return a nil
+		Deleted: false,
+		EventName: "push",
+	}
+	hook3 := &hookEvent{ //should return a nil
+		Deleted: false,
+		EventName: "pull_request",
+		Action: "opened",
+	}
+	hook4 := &hookEvent{ //should return a *string
+		Deleted: false,
+		EventName: "pull_request",
+		Action: "nothing",
+	}
+
+	if skipReason1 := shouldSkip(hook1); skipReason1 == nil {
+		t.Errorf("Failed to skip deleted branch")
+	}
+	if skipReason2 := shouldSkip(hook2); skipReason2 != nil {
+		t.Errorf("Failed to build push event")
+	}
+	if skipReason3 := shouldSkip(hook3); skipReason3 != nil {
+		t.Errorf("Failed to build pull_request event")
+	}
+	if skipReason4 := shouldSkip(hook4); skipReason4 == nil {
+		t.Errorf("Failed to skip improper action")
+	}
+}
+
 func doNothingAction(tempDir, owner, repo string, exitCode int, returnedErr error) error {
 	return onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
 		return &executeResult{ExitCode: exitCode}, "", returnedErr

@@ -123,9 +123,11 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 			return grimErrorf("error extracting hook from message: %v", err)
 		}
 
-		if hook.Deleted || !(hook.EventName == "push" || hook.EventName == "pull_request" && (hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize")) {
+		if skipReason := shouldSkip(hook); skipReason != nil {
+			logger.Printf("hook skipped %v: %s\n", skipReason, hook.Describe())
 			return nil
 		}
+		logger.Printf("hook built: %s\n", hook.Describe())
 
 		if hook.EventName == "pull_request" {
 			sha, err := pollForMergeCommitSha(globalConfig.gitHubToken, hook.Owner, hook.Repo, hook.PrNumber)
@@ -230,4 +232,21 @@ Or to use the server defaults, remove the entry %q`
 
 func buildTruncatedMessage(truncateID string) string {
 	return fmt.Sprintf(truncatedMessage, truncateID, truncateID, truncateID)
+}
+
+func shouldSkip(hook *hookEvent) *string {
+	message := ""
+	if hook.Deleted {
+		message = fmt.Sprintf("because it was on a deleted branch")
+		return &message
+	}
+	if hook.EventName == "push" {
+		return nil
+	} else {
+		if !(hook.Action == "opened" || hook.Action == "reopened" || hook.Action == "synchronize") {
+			message = fmt.Sprintf("because the action: %q was not 'opened', 'reopened', or 'synchronize'", hook.Action)
+			return &message
+		}
+		return nil
+	}
 }
