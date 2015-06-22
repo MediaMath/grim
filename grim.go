@@ -253,20 +253,23 @@ func buildTruncatedMessage(truncateID string) string {
 
 func shouldSkip(hook *hookEvent) *string {
 	var message *string
+
 	switch {
 	case hook.Deleted:
 		message = getStringPtr("because it was on a deleted branch")
 	case hook.EventName == "push":
-		message = nil
-	case hook.Action == "opened":
-		message = nil
-	case hook.Action == "reopened":
-		message = nil
-	case hook.Action == "synchronize":
-		message = nil
+	case hook.EventName == "pull_request":
+		switch {
+		case hook.Action == "opened":
+		case hook.Action == "reopened":
+		case hook.Action == "synchronize":
+		default:
+			message = getStringPtr(fmt.Sprintf("because the action: %q was not 'opened', 'reopened', or 'synchronize'", hook.Action))
+		}
 	default:
-		message = getStringPtr(fmt.Sprintf("because the action: %q was not 'opened', 'reopened', or 'synchronize'", hook.Action))
+		message = getStringPtr(fmt.Sprintf("because the eventName: %q was not 'push' or 'pull_request'", hook.EventName))
 	}
+
 	return message
 }
 

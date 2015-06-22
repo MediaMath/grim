@@ -228,11 +228,12 @@ func TestShouldSkip(t *testing.T) {
 		{&hookEvent{EventName: "pull_request", Action: "reopened"}, true},
 		{&hookEvent{EventName: "pull_request", Action: "synchronize"}, true},
 		{&hookEvent{EventName: "pull_request", Action: "matters"}, false},
+		{&hookEvent{EventName: "issue", Action: "opened"}, false},
 	}
 	for _, sT := range skipTests  {
 		message := shouldSkip(sT.in)
 		if XOR(message == nil, sT.retn) {
-			t.Errorf("Failed test for hook with params=Deleted:%t,EventName:%v,Action:%v", sT.in.Deleted, sT.in.EventName, sT.in.Action)
+			t.Errorf("Failed test for hook with params<Deleted:%t,EventName:%v,Action:%v> with message:%d", sT.in.Deleted, sT.in.EventName, sT.in.Action, message)
 		}
 	}
 }
