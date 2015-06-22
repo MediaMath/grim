@@ -170,37 +170,32 @@ func TestHookGetsLogged(t *testing.T) {
 }
 
 func TestShouldSkip(t *testing.T) {
-	hook1 := &hookEvent{ //should return a *string
-		Deleted: true,
-		EventName: "push",
+	var skipTests = []struct {
+		in    *hookEvent
+		retn  bool // True for nil, False for not nil
+	}{
+		{&hookEvent{Deleted: true}, false},
+		{&hookEvent{Deleted: true, EventName: "push"}, false},
+		{&hookEvent{Deleted: true, EventName: "pull_request"}, false},
+		{&hookEvent{Deleted: true, EventName: "pull_request", Action: "reopened"}, false},
+		{&hookEvent{EventName: "push"}, true},
+		{&hookEvent{EventName: "push", Action: "opened"}, true},
+		{&hookEvent{EventName: "push", Action: "doesn't matter"}, true},
+		{&hookEvent{EventName: "pull_request", Action: "opened"}, true},
+		{&hookEvent{EventName: "pull_request", Action: "reopened"}, true},
+		{&hookEvent{EventName: "pull_request", Action: "synchronize"}, true},
+		{&hookEvent{EventName: "pull_request", Action: "matters"}, false},
 	}
-	hook2 := &hookEvent{ //should return a nil
-		Deleted: false,
-		EventName: "push",
+	for _, sT := range skipTests  {
+		message := shouldSkip(sT.in)
+		if XOR(message == nil, sT.retn) {
+			t.Errorf("Failed test for hook with params=Deleted:%t,EventName:%v,Action:%v", sT.in.Deleted, sT.in.EventName, sT.in.Action)
+		}
 	}
-	hook3 := &hookEvent{ //should return a nil
-		Deleted: false,
-		EventName: "pull_request",
-		Action: "opened",
-	}
-	hook4 := &hookEvent{ //should return a *string
-		Deleted: false,
-		EventName: "pull_request",
-		Action: "nothing",
-	}
+}
 
-	if skipReason1 := shouldSkip(hook1); skipReason1 == nil {
-		t.Errorf("Failed to skip deleted branch")
-	}
-	if skipReason2 := shouldSkip(hook2); skipReason2 != nil {
-		t.Errorf("Failed to build push event")
-	}
-	if skipReason3 := shouldSkip(hook3); skipReason3 != nil {
-		t.Errorf("Failed to build pull_request event")
-	}
-	if skipReason4 := shouldSkip(hook4); skipReason4 == nil {
-		t.Errorf("Failed to skip improper action")
-	}
+func XOR(a, b bool) bool {
+	return a != b
 }
 
 func doNothingAction(tempDir, owner, repo string, exitCode int, returnedErr error) error {

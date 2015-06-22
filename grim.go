@@ -255,10 +255,13 @@ func shouldSkip(hook *hookEvent) *string {
 	var message *string
 	switch {
 	case hook.Deleted:
-		message = getStringPtr(fmt.Sprintf("because it was on a deleted branch"))
+		message = getStringPtr("because it was on a deleted branch")
 	case hook.EventName == "push":
+		message = nil
 	case hook.Action == "opened":
+		message = nil
 	case hook.Action == "reopened":
+		message = nil
 	case hook.Action == "synchronize":
 		message = nil
 	default:
