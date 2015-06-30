@@ -5,10 +5,10 @@ package grim
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
-	"fmt"
 	"time"
 )
 
@@ -193,16 +193,20 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 
 func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
 	build := make(chan error, 1)
-	defer close(build)
 
 	go func() {
 		build <- onHookBuild(configRoot, config, hook, logger, action)
+		close(build)
 	}()
 
 	select {
-	case err := <-build:
+	case err, ok := <-build:
+		if !ok {
+			return fmt.Errorf("Hook build channel closed unexpectedly: %v", err)
+		}
+
 		return err
-	case <- time.After(time.Second * time.Duration(config.timeout)):
+	case <-time.After(config.BuildTimeout()):
 		return fmt.Errorf("Build Timeout")
 	}
 }
