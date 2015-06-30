@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 	defaultConfigRoot         = "/etc/grim"
 	defaultResultRoot         = "/var/log/grim"
 	defaultWorkspaceRoot      = "/var/tmp/grim"
-	defaultTimeOutSeconds	  = 30
+	defaultTimeOutSeconds     = 30
 	configFileName            = "config.json"
 	buildScriptName           = "build.sh"
 	repoBuildScriptName       = "grim_build.sh"
@@ -67,6 +68,20 @@ type effectiveConfig struct {
 	failureTemplate   string
 	timeout           int
 	usernameWhitelist []string
+}
+
+//BuildTimeout is a "safe" way to get the timeout configured for builds.  It will ensure non-zero build timeouts.
+type BuildTimeout interface {
+	BuildTimeout() time.Duration
+}
+
+func (ec *effectiveConfig) BuildTimeout() time.Duration {
+	seconds := ec.timeout
+	if seconds == 0 {
+		seconds = defaultTimeOutSeconds
+	}
+
+	return time.Second * time.Duration(seconds)
 }
 
 type repo struct {
