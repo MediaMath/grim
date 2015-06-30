@@ -1,16 +1,16 @@
 package grim
 
 import (
-	"time"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"testing"
-	"bytes"
 	"strings"
+	"testing"
+	"time"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -32,8 +32,8 @@ func TestTruncatedGrimServerID(t *testing.T) {
 	ioutil.WriteFile(filepath.Join(tempDir, "config.json"), []byte(configJS), 0644)
 
 	g := &Instance{
-		configRoot : &tempDir,
-		queue      : nil,
+		configRoot: &tempDir,
+		queue:      nil,
 	}
 
 	g.PrepareGrimQueue(logger)
@@ -68,7 +68,7 @@ func TestTimeOutConfig(t *testing.T) {
 	}
 
 	err = doWaitAction(config, testOwner, testRepo, 10)
-	errMess := fmt.Sprintf("%v",err)
+	errMess := fmt.Sprintf("%v", err)
 	if errMess != "Build Timeout" {
 		t.Errorf("Failed to timeout")
 	}
@@ -184,9 +184,13 @@ func TestHookGetsLogged(t *testing.T) {
 
 	hook := hookEvent{Owner: testOwner, Repo: testRepo, StatusRef: "fooooooooooooooooooo"}
 
-	onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hook, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
+	err := onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hook, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
 		return &executeResult{ExitCode: 0}, "", nil
 	})
+
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	results, _ := resultsDirectoryExists(tempDir, testOwner, testRepo)
 	hookFile := filepath.Join(results, "hook.json")
@@ -214,8 +218,8 @@ func TestHookGetsLogged(t *testing.T) {
 
 func TestShouldSkip(t *testing.T) {
 	var skipTests = []struct {
-		in    *hookEvent
-		retn  bool // True for nil, False for not nil
+		in   *hookEvent
+		retn bool // True for nil, False for not nil
 	}{
 		{&hookEvent{Deleted: true}, false},
 		{&hookEvent{Deleted: true, EventName: "push"}, false},
@@ -230,7 +234,7 @@ func TestShouldSkip(t *testing.T) {
 		{&hookEvent{EventName: "pull_request", Action: "matters"}, false},
 		{&hookEvent{EventName: "issue", Action: "opened"}, false},
 	}
-	for _, sT := range skipTests  {
+	for _, sT := range skipTests {
 		message := shouldSkip(sT.in)
 		if XOR(message == nil, sT.retn) {
 			t.Errorf("Failed test for hook with params<Deleted:%t,EventName:%v,Action:%v> with message:%d", sT.in.Deleted, sT.in.EventName, sT.in.Action, message)
