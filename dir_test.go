@@ -18,8 +18,6 @@ var pathsNames = &pathNames{} // a global variable to store file paths of worksp
 Test on the consistency of timestamp of workspace and result.
 */
 func TestOnWorkSpaceAndResultNameConsistency(t *testing.T) {
-	t.Skip("This test is failing and needs to be fixed.")
-
 	tempDir, _ := ioutil.TempDir("", "results-dir-consistencyCheck")
 	defer os.RemoveAll(tempDir)
 	//trigger a build to have file paths of result and workspace
@@ -73,16 +71,25 @@ func StubBuild(configRoot string, resultPath string, config *effectiveConfig, ho
 }
 
 func built(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string, basename string) (*executeResult, string, error) {
-	ws := &testWorkSpaceBuilder{workspaceBuilder{workspaceRoot, clonePath, token, configRoot, owner, repo, ref, extraEnv}}
+	ws := &testWorkSpaceBuilder{"!@#", &executeResult{ExitCode: 0}}
 	return grimBuild(ws, resultPath, basename)
 }
 
 type testWorkSpaceBuilder struct {
-	workspaceBuilder
+	StubbuildScriptPath string
+	StubbuildResult     *executeResult
 }
 
 func (tb *testWorkSpaceBuilder) PrepareWorkspace(basename string) (string, error) {
-	workSpacePath, err := makeTree(tb.workspaceRoot, tb.owner, tb.repo, basename)
+	workSpacePath, err := makeTree(basename)
 	pathsNames.workspacePath = workSpacePath
 	return workSpacePath, err
+}
+
+func (tb *testWorkSpaceBuilder) FindBuildScript(workspacePath string) (string, error) {
+	return ".", nil
+}
+
+func (tb *testWorkSpaceBuilder) RunBuildScript(workspacePath, buildScript string, outputChan chan string) (*executeResult, error) {
+	return &executeResult{ExitCode: 0}, nil
 }
