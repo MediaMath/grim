@@ -207,6 +207,9 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *
 
 		return err
 	case <-time.After(config.BuildTimeout()):
+		//TODO: get the prcess ids and kill the process/s on timeout
+		var execRes = new(executeResult)
+		killProcessForID(execRes.getProcessID())
 		return fmt.Errorf("Build Timeout")
 	}
 }

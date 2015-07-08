@@ -19,7 +19,12 @@ type executeResult struct {
 	UserTime   time.Duration
 	InitialEnv []string
 	ExitCode   int
+	ProcessID  int
 	Output     string `json:"-"`
+}
+
+func (e *executeResult) getProcessID() int {
+	return e.ProcessID
 }
 
 func appendResult(resultPath string, result executeResult) error {

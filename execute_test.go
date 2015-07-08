@@ -42,7 +42,7 @@ func TestRunEcho(t *testing.T) {
 		}
 
 		if result.ExitCode != 0 {
-			t.Error("false should return 1 as its exit code")
+			t.Error("echo should return 0 as its exit code")
 		}
 
 		if result.Output != "test\n" {
