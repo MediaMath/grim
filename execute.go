@@ -70,7 +70,6 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 	}
 
 	done := make(chan error, 1)
-	wg.Add(1)
 	go func() {
 		done <- cmd.Wait()
 	}()
