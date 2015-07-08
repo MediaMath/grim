@@ -9,10 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"strconv"
-	"strings"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -72,26 +69,22 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		return nil, fmt.Errorf("error starting process: %v", startErr)
 	}
 
-	waitErr := cmd.Wait()
-
-	if waitErr != nil {
-		if exitErr, ok := waitErr.(*exec.ExitError); ok {
-			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-				exitCode = status.ExitStatus()
-			}
-		} else {
-			return nil, waitErr
+	done := make(chan error, 1)
+	wg.Add(1)
+	go func() {
+		done <- cmd.Wait()
+	}()
+	select {
+	case <-time.After(30 * time.Second):
+		if err := cmd.Process.Kill(); err != nil {
+			return nil, fmt.Errorf("Failed to kill process: ", err)
+		}
+		<-done
+	case err := <-done:
+		if err != nil {
+			return nil, fmt.Errorf("Process done with error = %v", err)
 		}
 	}
-
-	// output has the process ID
-	output, _ := cmd.Output()
-	// create a map of process id and child id's
-	// processID, err := getPIDFromOutput(output)
-	processID := getPIDFromOutput(output)
-	// if err != nil {
-	// return nil, fmt.Errorf("error getting the process id: %v", err)
-	// }
 
 	return &executeResult{
 		StartTime:  startTime,
@@ -100,7 +93,6 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		UserTime:   cmd.ProcessState.UserTime(),
 		InitialEnv: cmd.Env,
 		ExitCode:   exitCode,
-		ProcessID:  processID,
 	}, nil
 }
 
@@ -115,30 +107,4 @@ func sendLines(rc io.ReadCloser, linesChan chan string, wg *sync.WaitGroup) {
 func closeAfterDone(outputChan chan string, wg *sync.WaitGroup) {
 	wg.Wait()
 	close(outputChan)
-}
-
-func getPIDFromOutput(output []byte) int {
-	// if len(output) == 0 {
-	// return 0, fmt.Errorf("empty output: %v", output)
-	// }
-	// child := make(map[int][]int)
-	var pid int
-	for i, s := range strings.Split(string(output), "\n") {
-		if i == 0 { // kill first line
-			continue
-		}
-		if len(s) == 0 { // kill last line
-			continue
-		}
-		f := strings.Fields(s)
-		fpp, _ := strconv.Atoi(f[1]) // parent's pid
-		// fp, _ := strconv.Atoi(f[0])  // child's pid
-		// child[fpp] = append(child[fpp], fp)
-		pid = fpp
-	}
-	return pid
-}
-
-func killProcessForID(pID int) {
-	exec.Command("kill", "-KILL", strconv.Itoa(pID))
 }

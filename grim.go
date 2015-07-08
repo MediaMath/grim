@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
-	"time"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -206,11 +205,8 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *
 		}
 
 		return err
-	case <-time.After(config.BuildTimeout()):
-		//TODO: get the prcess ids and kill the process/s on timeout
-		var execRes = new(executeResult)
-		killProcessForID(execRes.getProcessID())
-		return fmt.Errorf("Build Timeout")
+		// case <-time.After(config.BuildTimeout()):
+		// 	return fmt.Errorf("Build Timeout")
 	}
 }
 
