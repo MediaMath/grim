@@ -79,7 +79,7 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 	select {
 	case <-time.After(con.BuildTimeout()):
 		if err := cmd.Process.Kill(); err != nil {
-			return nil, fmt.Errorf("Failed to kill process: ", err)
+			return nil, fmt.Errorf("Failed to kill process: %v", err)
 		}
 		<-done
 	case err := <-done:
