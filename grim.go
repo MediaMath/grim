@@ -205,8 +205,6 @@ func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *
 		}
 
 		return err
-		// case <-time.After(config.BuildTimeout()):
-		// 	return fmt.Errorf("Build Timeout")
 	}
 }
 

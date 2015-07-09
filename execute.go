@@ -10,6 +10,7 @@ import (
 	"io"
 	"os/exec"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -69,18 +70,26 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		return nil, fmt.Errorf("error starting process: %v", startErr)
 	}
 
+	//create a new effectiveconfig instance
+	var con = new(effectiveConfig)
 	done := make(chan error, 1)
 	go func() {
 		done <- cmd.Wait()
 	}()
 	select {
-	case <-time.After(30 * time.Second):
+	case <-time.After(con.BuildTimeout()):
 		if err := cmd.Process.Kill(); err != nil {
 			return nil, fmt.Errorf("Failed to kill process: ", err)
 		}
 		<-done
 	case err := <-done:
 		if err != nil {
+			if exitErr, ok := cmd.Wait().(*exec.ExitError); ok {
+				if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+					exitCode = status.ExitStatus()
+				}
+			}
+
 			return nil, fmt.Errorf("Process done with error = %v", err)
 		}
 	}

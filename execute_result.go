@@ -22,10 +22,6 @@ type executeResult struct {
 	Output     string `json:"-"`
 }
 
-// func (e *executeResult) getProcessID() string {
-// 	return e.ProcessID
-// }
-
 func appendResult(resultPath string, result executeResult) error {
 	resultErr := writeResult(resultPath, &result)
 	if resultErr != nil {

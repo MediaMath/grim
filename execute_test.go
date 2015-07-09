@@ -5,28 +5,26 @@ package grim
 // license that can be found in the LICENSE file.
 
 import (
-	"fmt"
 	"os/exec"
 	"testing"
 )
 
 func TestRunFalse(t *testing.T) {
+
 	withTempDir(t, func(path string) {
 		falsePath, err := exec.LookPath("false")
 		if err != nil {
 			t.Fatal(err)
 		}
-		fmt.Printf("false path is: %v\n", falsePath)
 
-		result, err := execute(nil, "", falsePath)
-		if err != nil {
+		_, err = execute(nil, "", falsePath)
+		if err == nil {
 			t.Error(err)
 		}
-		fmt.Printf("Exit code is: %v\n", result.ExitCode)
 
-		if result.ExitCode != 1 {
-			t.Fatal("false should return 1 as its exit code")
-		}
+		// if result.ExitCode != 1 {
+		// 	t.Fatal("false should return 1 as its exit code")
+		// }
 	})
 }
 
@@ -64,7 +62,6 @@ func TestRunEchoWithChan(t *testing.T) {
 		}
 
 		outputChan := make(chan string)
-
 		result, err := executeWithOutputChan(outputChan, nil, "", echoPath, "test")
 		if err != nil {
 			t.Error(err)
