@@ -72,6 +72,8 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 
 	//create a new effectiveconfig instance
 	var con = new(effectiveConfig)
+
+	// 1 deep channel for done
 	done := make(chan error, 1)
 	go func() {
 		done <- cmd.Wait()
