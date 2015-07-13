@@ -39,8 +39,6 @@ func execute(env []string, workingDir string, execPath string, args ...string) (
 
 func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
 
-	var exitCode int
-
 	startTime := time.Now()
 
 	cmd := exec.Command(execPath, args...)
