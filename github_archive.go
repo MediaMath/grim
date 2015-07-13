@@ -20,11 +20,6 @@ func cloneRepo(token, workspacePath, clonePath, owner, repo, ref string) (string
 		return "", err
 	}
 
-	// var ws = new(workspaceBuilder)
-	// conf, err := getEffectiveConfig(ws.configRoot, ws.owner, ws.repo)
-	// if err != nil {
-	// 	return "", err
-	// }
 	return unarchiveRepo(archive, workspacePath, clonePath)
 }
 

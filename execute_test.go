@@ -17,14 +17,14 @@ func TestRunFalse(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		_, err = execute(nil, "", falsePath)
-		if err == nil {
+		result, err := execute(nil, "", falsePath)
+		if err != nil {
 			t.Error(err)
 		}
 
-		// if result.ExitCode != 1 {
-		// 	t.Fatal("false should return 1 as its exit code")
-		// }
+		if result.ExitCode != 1 {
+			t.Fatal("false should return 1 as its exit code")
+		}
 	})
 }
 

@@ -54,10 +54,6 @@ func (ws *workspaceBuilder) RunBuildScript(workspacePath, buildScript string, ou
 	env = append(env, fmt.Sprintf("CLONE_PATH=%v", ws.clonePath))
 	env = append(env, ws.extraEnv...)
 
-	// conf, err := getEffectiveConfig(ws.configRoot, ws.owner, ws.repo)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	return executeWithOutputChan(outputChan, env, workspacePath, buildScript)
 }
 

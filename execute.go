@@ -38,6 +38,7 @@ func execute(env []string, workingDir string, execPath string, args ...string) (
 }
 
 func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
+
 	var exitCode int
 
 	startTime := time.Now()
@@ -73,27 +74,9 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 	//create a new effectiveconfig instance
 	var con = new(effectiveConfig)
 
-	// 1 deep channel for done
-	done := make(chan error, 1)
-	go func() {
-		done <- cmd.Wait()
-	}()
-	select {
-	case <-time.After(con.BuildTimeout()):
-		if err := cmd.Process.Kill(); err != nil {
-			return nil, fmt.Errorf("Failed to kill process: %v", err)
-		}
-		<-done
-	case err := <-done:
-		if err != nil {
-			if exitErr, ok := cmd.Wait().(*exec.ExitError); ok {
-				if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-					exitCode = status.ExitStatus()
-				}
-			}
-
-			return nil, fmt.Errorf("Process done with error = %v", err)
-		}
+	exitCode, err := killProcessOnTimeout(cmd, con)
+	if err != nil {
+		return nil, err
 	}
 
 	return &executeResult{
@@ -104,6 +87,34 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		InitialEnv: cmd.Env,
 		ExitCode:   exitCode,
 	}, nil
+}
+
+// kills a cmd process based on config timeout settings
+func killProcessOnTimeout(cmd *exec.Cmd, conf *effectiveConfig) (int, error) {
+	var exitCode int
+	// 1 deep channel for done
+	done := make(chan error, 1)
+
+	go func() {
+		done <- cmd.Wait()
+	}()
+
+	select {
+	case <-time.After(conf.BuildTimeout()):
+		if err := cmd.Process.Kill(); err != nil {
+			return 0, fmt.Errorf("Failed to kill process: %v", err)
+		}
+		<-done
+	case err := <-done:
+		if err != nil {
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+					exitCode = status.ExitStatus()
+				}
+			}
+		}
+	}
+	return exitCode, nil
 }
 
 func sendLines(rc io.ReadCloser, linesChan chan string, wg *sync.WaitGroup) {
