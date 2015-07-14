@@ -83,3 +83,14 @@ func TestRunEchoWithChan(t *testing.T) {
 		}
 	})
 }
+
+func TestGetExitCode(t *testing.T) {
+	var err error
+	ec, err := getExitCode(err)
+	if ec != 0 {
+		t.Error("exit code should be 0")
+	}
+	if err == nil {
+		t.Error("Cast Error should be shown")
+	}
+}

@@ -102,14 +102,26 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeOut time.Duration) (int, error) {
 		<-done
 	case err := <-done:
 		if err != nil {
-			if exitErr, ok := err.(*exec.ExitError); ok {
-				if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-					exitCode = status.ExitStatus()
-				}
-			} else {
+			exitCode, err = getExitCode(err)
+			if err != nil {
 				return 0, fmt.Errorf("Build Error: %v", err)
 			}
 		}
+	}
+	return exitCode, nil
+}
+
+// gets the exit code from error
+func getExitCode(err error) (int, error) {
+	var exitCode int
+	if exitErr, ok := err.(*exec.ExitError); ok {
+		if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+			exitCode = status.ExitStatus()
+		} else {
+			return 0, fmt.Errorf("Wrong Wait Status: %v", err)
+		}
+	} else {
+		return 0, fmt.Errorf("Can not cast to ExitError: %v", err)
 	}
 	return exitCode, nil
 }

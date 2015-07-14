@@ -11,13 +11,12 @@ import (
 	"time"
 )
 
-// testBuildTimeout is timeout value constant used throughout tests
-// USED IN: build_test, execute_test, github_archive_test
-const testBuildTimeOut = time.Second * time.Duration(10)
-
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
+const testBuildTimeOut = time.Second * time.Duration(10)
+
 func TestPreparePublicRepo(t *testing.T) {
 	if testing.Short() {
 		t.Skipf("Skipping prepare test in short mode.")
