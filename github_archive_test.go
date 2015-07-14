@@ -19,7 +19,7 @@ func TestUnarchiveRepo(t *testing.T) {
 
 	wd, _ := os.Getwd()
 	file := fmt.Sprintf("%s/test_data/TestUnarchiveRepo/baz-foo.bar-v4.0.3-44-fasdfadsflkjlkjlkjlkjlkjlkjlj.tar.gz", wd)
-	unpacked, err := unarchiveRepo(file, temp, clonePath)
+	unpacked, err := unarchiveRepo(file, temp, clonePath, testBuildTimeOut)
 
 	if err != nil {
 		t.Errorf("|%v|", err)

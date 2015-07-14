@@ -17,7 +17,7 @@ func TestRunFalse(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result, err := execute(nil, "", falsePath)
+		result, err := execute(nil, "", falsePath, testBuildTimeOut)
 		if err != nil {
 			t.Error(err)
 		}
@@ -37,7 +37,7 @@ func TestRunEcho(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result, err := execute(nil, "", echoPath, "test")
+		result, err := execute(nil, "", echoPath, testBuildTimeOut, "test")
 		if err != nil {
 			t.Error(err)
 		}
@@ -62,7 +62,7 @@ func TestRunEchoWithChan(t *testing.T) {
 		}
 
 		outputChan := make(chan string)
-		result, err := executeWithOutputChan(outputChan, nil, "", echoPath, "test")
+		result, err := executeWithOutputChan(outputChan, nil, "", echoPath, testBuildTimeOut, "test")
 		if err != nil {
 			t.Error(err)
 		}

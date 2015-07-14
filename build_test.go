@@ -8,7 +8,12 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
+
+// testBuildTimeout is timeout value constant used throughout tests
+// USED IN: build_test, execute_test, github_archive_test
+const testBuildTimeOut = time.Second * time.Duration(10)
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -35,6 +40,7 @@ func TestPreparePublicRepo(t *testing.T) {
 		repo:       "part",
 		ref:        "eb78552e86dfead7f6506e6d35ae5db9fc078403",
 		extraEnv:   []string{},
+		timeOut:    testBuildTimeOut,
 	}
 
 	ws, err := builder.PrepareWorkspace(basename)

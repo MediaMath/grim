@@ -19,10 +19,10 @@ type eitherStringOrError struct {
 	err error
 }
 
-func execute(env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
+func execute(env []string, workingDir string, execPath string, timeOut time.Duration, args ...string) (*executeResult, error) {
 	outputChan := make(chan string)
 
-	res, err := executeWithOutputChan(outputChan, env, workingDir, execPath, args...)
+	res, err := executeWithOutputChan(outputChan, env, workingDir, execPath, timeOut, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func execute(env []string, workingDir string, execPath string, args ...string) (
 	return res, nil
 }
 
-func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
+func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, timeOut time.Duration, args ...string) (*executeResult, error) {
 
 	startTime := time.Now()
 
@@ -69,10 +69,7 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		return nil, fmt.Errorf("error starting process: %v", startErr)
 	}
 
-	//create a new effectiveconfig instance
-	var con = new(effectiveConfig)
-
-	exitCode, err := killProcessOnTimeout(cmd, con)
+	exitCode, err := killProcessOnTimeout(cmd, timeOut)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +85,7 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 }
 
 // kills a cmd process based on config timeout settings
-func killProcessOnTimeout(cmd *exec.Cmd, conf *effectiveConfig) (int, error) {
+func killProcessOnTimeout(cmd *exec.Cmd, timeOut time.Duration) (int, error) {
 	var exitCode int
 	// 1 deep channel for done
 	done := make(chan error, 1)
@@ -98,7 +95,7 @@ func killProcessOnTimeout(cmd *exec.Cmd, conf *effectiveConfig) (int, error) {
 	}()
 
 	select {
-	case <-time.After(conf.BuildTimeout()):
+	case <-time.After(timeOut):
 		if err := cmd.Process.Kill(); err != nil {
 			return 0, fmt.Errorf("Failed to kill process: %v", err)
 		}
@@ -109,6 +106,8 @@ func killProcessOnTimeout(cmd *exec.Cmd, conf *effectiveConfig) (int, error) {
 				if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
 					exitCode = status.ExitStatus()
 				}
+			} else {
+				return 0, fmt.Errorf("Build Error: %v", err)
 			}
 		}
 	}
