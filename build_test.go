@@ -15,7 +15,7 @@ import (
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-const testBuildTimeOut = time.Second * time.Duration(10)
+const testBuildtimeout = time.Second * time.Duration(10)
 
 func TestPreparePublicRepo(t *testing.T) {
 	if testing.Short() {
@@ -39,7 +39,7 @@ func TestPreparePublicRepo(t *testing.T) {
 		repo:       "part",
 		ref:        "eb78552e86dfead7f6506e6d35ae5db9fc078403",
 		extraEnv:   []string{},
-		timeOut:    testBuildTimeOut,
+		timeout:    testBuildtimeout,
 	}
 
 	ws, err := builder.PrepareWorkspace(basename)

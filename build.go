@@ -23,7 +23,7 @@ func (ws *workspaceBuilder) PrepareWorkspace(basename string) (string, error) {
 		return "", fmt.Errorf("failed to create workspace directory: %v", err)
 	}
 
-	_, err = cloneRepo(ws.token, workspacePath, ws.clonePath, ws.owner, ws.repo, ws.ref, ws.timeOut)
+	_, err = cloneRepo(ws.token, workspacePath, ws.clonePath, ws.owner, ws.repo, ws.ref, ws.timeout)
 	if err != nil {
 		return "", fmt.Errorf("failed to download repo archive: %v", err)
 	}
@@ -55,7 +55,7 @@ func (ws *workspaceBuilder) RunBuildScript(workspacePath, buildScript string, ou
 	env = append(env, fmt.Sprintf("CLONE_PATH=%v", ws.clonePath))
 	env = append(env, ws.extraEnv...)
 
-	return executeWithOutputChan(outputChan, env, workspacePath, buildScript, ws.timeOut)
+	return executeWithOutputChan(outputChan, env, workspacePath, buildScript, ws.timeout)
 }
 
 type workspaceBuilder struct {
@@ -67,7 +67,7 @@ type workspaceBuilder struct {
 	repo          string
 	ref           string
 	extraEnv      []string
-	timeOut       time.Duration
+	timeout       time.Duration
 }
 
 func grimBuild(builder grimBuilder, resultPath, basename string) (*executeResult, string, error) {
@@ -118,7 +118,7 @@ func grimBuild(builder grimBuilder, resultPath, basename string) (*executeResult
 	return result, workspacePath, nil
 }
 
-func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string, basename string, timeOut time.Duration) (*executeResult, string, error) {
-	ws := &workspaceBuilder{workspaceRoot, clonePath, token, configRoot, owner, repo, ref, extraEnv, timeOut}
+func build(token, configRoot, workspaceRoot, resultPath, clonePath, owner, repo, ref string, extraEnv []string, basename string, timeout time.Duration) (*executeResult, string, error) {
+	ws := &workspaceBuilder{workspaceRoot, clonePath, token, configRoot, owner, repo, ref, extraEnv, timeout}
 	return grimBuild(ws, resultPath, basename)
 }

@@ -19,10 +19,10 @@ type eitherStringOrError struct {
 	err error
 }
 
-func execute(env []string, workingDir string, execPath string, timeOut time.Duration, args ...string) (*executeResult, error) {
+func execute(env []string, workingDir string, execPath string, timeout time.Duration, args ...string) (*executeResult, error) {
 	outputChan := make(chan string)
 
-	res, err := executeWithOutputChan(outputChan, env, workingDir, execPath, timeOut, args...)
+	res, err := executeWithOutputChan(outputChan, env, workingDir, execPath, timeout, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func execute(env []string, workingDir string, execPath string, timeOut time.Dura
 	return res, nil
 }
 
-func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, timeOut time.Duration, args ...string) (*executeResult, error) {
+func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, timeout time.Duration, args ...string) (*executeResult, error) {
 
 	startTime := time.Now()
 
@@ -69,7 +69,7 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		return nil, fmt.Errorf("error starting process: %v", startErr)
 	}
 
-	exitCode, err := killProcessOnTimeout(cmd, timeOut)
+	exitCode, err := killProcessOnTimeout(cmd, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 }
 
 // kills a cmd process based on config timeout settings
-func killProcessOnTimeout(cmd *exec.Cmd, timeOut time.Duration) (int, error) {
+func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 	var exitCode int
 	// 1 deep channel for done
 	done := make(chan error, 1)
@@ -95,7 +95,7 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeOut time.Duration) (int, error) {
 	}()
 
 	select {
-	case <-time.After(timeOut):
+	case <-time.After(timeout):
 		if err := cmd.Process.Kill(); err != nil {
 			return 0, fmt.Errorf("Failed to kill process: %v", err)
 		}
