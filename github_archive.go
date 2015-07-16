@@ -12,18 +12,19 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-func cloneRepo(token, workspacePath, clonePath, owner, repo, ref string) (string, error) {
+func cloneRepo(token string, workspacePath string, clonePath string, owner string, repo string, ref string, timeOut time.Duration) (string, error) {
 	archive, err := downloadRepo(token, owner, repo, ref, workspacePath)
 	if err != nil {
 		return "", err
 	}
 
-	return unarchiveRepo(archive, workspacePath, clonePath)
+	return unarchiveRepo(archive, workspacePath, clonePath, timeOut)
 }
 
-func unarchiveRepo(file, workspacePath, clonePath string) (string, error) {
+func unarchiveRepo(file, workspacePath, clonePath string, timeOut time.Duration) (string, error) {
 	tarPath, err := exec.LookPath("tar")
 	if err != nil {
 		return "", err
@@ -36,7 +37,7 @@ func unarchiveRepo(file, workspacePath, clonePath string) (string, error) {
 
 	//extracts the folder into the finalName directory pulling off the top level folder
 	//will break if github starts returning a different tar format
-	result, err := execute(nil, workspacePath, tarPath, "-xvf", file, "-C", finalName, "--strip-components=1")
+	result, err := execute(nil, workspacePath, tarPath, timeOut, "-xvf", file, "-C", finalName, "--strip-components=1")
 
 	if err != nil {
 		return "", err

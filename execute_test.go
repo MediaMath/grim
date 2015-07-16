@@ -7,16 +7,18 @@ package grim
 import (
 	"os/exec"
 	"testing"
+	"time"
 )
 
 func TestRunFalse(t *testing.T) {
+
 	withTempDir(t, func(path string) {
 		falsePath, err := exec.LookPath("false")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		result, err := execute(nil, "", falsePath)
+		result, err := execute(nil, "", falsePath, testBuildtimeout)
 		if err != nil {
 			t.Error(err)
 		}
@@ -36,13 +38,13 @@ func TestRunEcho(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result, err := execute(nil, "", echoPath, "test")
+		result, err := execute(nil, "", echoPath, testBuildtimeout, "test")
 		if err != nil {
 			t.Error(err)
 		}
 
 		if result.ExitCode != 0 {
-			t.Error("false should return 1 as its exit code")
+			t.Error("echo should return 0 as its exit code")
 		}
 
 		if result.Output != "test\n" {
@@ -61,8 +63,7 @@ func TestRunEchoWithChan(t *testing.T) {
 		}
 
 		outputChan := make(chan string)
-
-		result, err := executeWithOutputChan(outputChan, nil, "", echoPath, "test")
+		result, err := executeWithOutputChan(outputChan, nil, "", echoPath, testBuildtimeout, "test")
 		if err != nil {
 			t.Error(err)
 		}
@@ -82,4 +83,24 @@ func TestRunEchoWithChan(t *testing.T) {
 			t.Error("no output ready even though echo terminated")
 		}
 	})
+}
+
+func TestGetExitCode(t *testing.T) {
+	timeoutTime := time.Duration(1) * time.Second
+
+	cmd := exec.Command("grep", "go")
+
+	err := cmd.Start()
+	if err != nil {
+		t.Error("can not start the command.")
+	}
+
+	exCode, err := killProcessOnTimeout(cmd, timeoutTime)
+	if err != nil {
+		t.Error("process still running")
+	}
+
+	if exCode != 1 {
+		t.Error("process should return 1 as its exit code")
+	}
 }

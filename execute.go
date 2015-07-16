@@ -19,10 +19,10 @@ type eitherStringOrError struct {
 	err error
 }
 
-func execute(env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
+func execute(env []string, workingDir string, execPath string, timeout time.Duration, args ...string) (*executeResult, error) {
 	outputChan := make(chan string)
 
-	res, err := executeWithOutputChan(outputChan, env, workingDir, execPath, args...)
+	res, err := executeWithOutputChan(outputChan, env, workingDir, execPath, timeout, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -37,8 +37,7 @@ func execute(env []string, workingDir string, execPath string, args ...string) (
 	return res, nil
 }
 
-func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, args ...string) (*executeResult, error) {
-	var exitCode int
+func executeWithOutputChan(outputChan chan string, env []string, workingDir string, execPath string, timeout time.Duration, args ...string) (*executeResult, error) {
 
 	startTime := time.Now()
 
@@ -70,16 +69,9 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		return nil, fmt.Errorf("error starting process: %v", startErr)
 	}
 
-	waitErr := cmd.Wait()
-
-	if waitErr != nil {
-		if exitErr, ok := waitErr.(*exec.ExitError); ok {
-			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-				exitCode = status.ExitStatus()
-			}
-		} else {
-			return nil, waitErr
-		}
+	exitCode, err := killProcessOnTimeout(cmd, timeout)
+	if err != nil {
+		return nil, err
 	}
 
 	return &executeResult{
@@ -90,6 +82,48 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 		InitialEnv: cmd.Env,
 		ExitCode:   exitCode,
 	}, nil
+}
+
+// kills a cmd process based on config timeout settings
+func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
+	var exitCode int
+	// 1 deep channel for done
+	done := make(chan error, 1)
+
+	go func() {
+		done <- cmd.Wait()
+	}()
+
+	select {
+	case <-time.After(timeout):
+		if err := cmd.Process.Kill(); err != nil {
+			return 0, fmt.Errorf("Failed to kill process: %v", err)
+		}
+		<-done
+	case err := <-done:
+		if err != nil {
+			exitCode, err = getExitCode(err)
+			if err != nil {
+				return 0, fmt.Errorf("Build Error: %v", err)
+			}
+		}
+	}
+	return exitCode, nil
+}
+
+// gets the exit code from error
+func getExitCode(err error) (int, error) {
+	var exitCode int
+	if exitErr, ok := err.(*exec.ExitError); ok {
+		if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+			exitCode = status.ExitStatus()
+		} else {
+			return 0, fmt.Errorf("Wrong Wait Status: %v", err)
+		}
+	} else {
+		return 0, fmt.Errorf("Can not cast to ExitError: %v", err)
+	}
+	return exitCode, nil
 }
 
 func sendLines(rc io.ReadCloser, linesChan chan string, wg *sync.WaitGroup) {

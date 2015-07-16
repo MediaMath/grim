@@ -8,11 +8,15 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
+const testBuildtimeout = time.Second * time.Duration(10)
+
 func TestPreparePublicRepo(t *testing.T) {
 	if testing.Short() {
 		t.Skipf("Skipping prepare test in short mode.")
@@ -35,6 +39,7 @@ func TestPreparePublicRepo(t *testing.T) {
 		repo:       "part",
 		ref:        "eb78552e86dfead7f6506e6d35ae5db9fc078403",
 		extraEnv:   []string{},
+		timeout:    testBuildtimeout,
 	}
 
 	ws, err := builder.PrepareWorkspace(basename)
