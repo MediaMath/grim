@@ -62,10 +62,10 @@ func (pn *pathNames) isConsistent() (bool, error) {
 }
 
 func builtForHook(tempDir, owner, repo string, exitCode int) error {
-	return onHook("not-used", &effectiveConfig{resultRoot: tempDir, workspaceRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, StubBuild)
+	return onHookBuild("not-used", &effectiveConfig{resultRoot: tempDir, workspaceRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, stubBuild)
 }
 
-func StubBuild(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
+func stubBuild(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
 	pathsNames.resultPath = resultPath
 	return built(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env(), basename)
 }

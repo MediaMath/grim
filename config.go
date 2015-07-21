@@ -19,7 +19,7 @@ var (
 	defaultConfigRoot         = "/etc/grim"
 	defaultResultRoot         = "/var/log/grim"
 	defaultWorkspaceRoot      = "/var/tmp/grim"
-	defaultTimeOutSeconds     = 30
+	defaultTimeout            = 5 * time.Minute
 	configFileName            = "config.json"
 	buildScriptName           = "build.sh"
 	repoBuildScriptName       = "grim_build.sh"
@@ -77,11 +77,12 @@ type BuildTimeout interface {
 
 func (ec *effectiveConfig) BuildTimeout() time.Duration {
 	seconds := ec.timeout
-	if seconds == 0 {
-		seconds = defaultTimeOutSeconds
+
+	if seconds > 0 {
+		return time.Second * time.Duration(seconds)
 	}
 
-	return time.Second * time.Duration(seconds)
+	return defaultTimeout
 }
 
 type repo struct {
@@ -193,7 +194,7 @@ func buildGlobalEffectiveConfig(global *config) effectiveConfig {
 		errorTemplate:   firstNonEmptyStringPtr(global.ErrorTemplate, templateForFailureandError("Error during")),
 		failureTemplate: firstNonEmptyStringPtr(global.FailureTemplate, templateForFailureandError("Failure during")),
 		successTemplate: firstNonEmptyStringPtr(global.SuccessTemplate, templateForSuccess()),
-		timeout:         firstNonZeroInt(global.Timeout, defaultTimeOutSeconds),
+		timeout:         firstNonZeroInt(global.Timeout, 0),
 	}
 }
 

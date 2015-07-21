@@ -63,7 +63,7 @@ func TestTimeOutConfig(t *testing.T) {
 		t.Errorf("|%v|", err)
 	}
 	config.resultRoot = tempDir
-	if config.timeout == defaultTimeOutSeconds {
+	if config.timeout == int(defaultTimeout.Seconds()) {
 		t.Errorf("Failed to use non default timeout time")
 	}
 
@@ -74,7 +74,7 @@ func TestTimeOutConfig(t *testing.T) {
 }
 
 func doWaitAction(config *effectiveConfig, owner, repo string, wait int) error {
-	return onHook("not-used", config, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
+	return onHookBuild("not-used", config, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
 		time.Sleep(time.Duration(wait) * time.Second)
 		return &executeResult{}, "", nil
 	})
@@ -178,7 +178,7 @@ func TestHookGetsLogged(t *testing.T) {
 
 	hook := hookEvent{Owner: testOwner, Repo: testRepo, StatusRef: "fooooooooooooooooooo"}
 
-	err := onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hook, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
+	err := onHookBuild("not-used", &effectiveConfig{resultRoot: tempDir}, hook, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
 		return &executeResult{ExitCode: 0}, "", nil
 	})
 
@@ -241,7 +241,7 @@ func XOR(a, b bool) bool {
 }
 
 func doNothingAction(tempDir, owner, repo string, exitCode int, returnedErr error) error {
-	return onHook("not-used", &effectiveConfig{resultRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
+	return onHookBuild("not-used", &effectiveConfig{resultRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
 		return &executeResult{ExitCode: exitCode}, "", returnedErr
 	})
 }

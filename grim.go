@@ -174,7 +174,7 @@ func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, 
 }
 
 func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger) error {
-	return onHook(configRoot, config, hook, logger, buildOnHook)
+	return onHookBuild(configRoot, config, hook, logger, buildOnHook)
 }
 
 type hookAction func(string, string, *effectiveConfig, hookEvent, string) (*executeResult, string, error)
@@ -188,24 +188,6 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 
 	ioutil.WriteFile(hookFile, hookBytes, 0644)
 	return nil
-}
-
-func onHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
-	build := make(chan error, 1)
-
-	go func() {
-		build <- onHookBuild(configRoot, config, hook, logger, action)
-		close(build)
-	}()
-
-	select {
-	case err, ok := <-build:
-		if !ok {
-			return fmt.Errorf("Hook build channel closed unexpectedly: %v", err)
-		}
-
-		return err
-	}
 }
 
 func onHookBuild(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
@@ -226,14 +208,12 @@ func onHookBuild(configRoot string, config *effectiveConfig, hook hookEvent, log
 		return fatalGrimErrorf("error during %v: %v", hook.Describe(), err)
 	}
 
-	var notifyError error
+	gn := GrimFailure
 	if result.ExitCode == 0 {
-		notifyError = notify(config, hook, ws, resultPath, GrimSuccess, logger)
-	} else {
-		notifyError = notify(config, hook, ws, resultPath, GrimFailure, logger)
+		gn = GrimSuccess
 	}
 
-	return notifyError
+	return notify(config, hook, ws, resultPath, gn, logger)
 }
 
 func (i *Instance) checkGrimQueue() error {
