@@ -95,25 +95,23 @@ func TestBuildRef(t *testing.T) {
 	configRoot := filepath.Join(temp, "config")
 	os.MkdirAll(filepath.Join(configRoot, owner, repo), 0700)
 
-	rr := filepath.Join(temp, "results")
-	ws := filepath.Join(temp, "ws")
-	bogus := "bogus"
+	grimConfigTemplate := `{
+		"ResultRoot": "%v",
+		"WorkspaceRoot": "%v",
+		"AWSRegion": "bogus",
+		"AWSKey": "bogus",
+		"AWSSecret": "bogus"
+	}`
+	grimJs := fmt.Sprintf(grimConfigTemplate, filepath.Join(temp, "results"), filepath.Join(temp, "ws"))
 
-	grimConfig := &config{
-		ResultRoot:    &rr,
-		WorkspaceRoot: &ws,
-		AWSRegion:     &bogus,
-		AWSKey:        &bogus,
-		AWSSecret:     &bogus,
-	}
+	ioutil.WriteFile(filepath.Join(configRoot, "config.json"), []byte(grimJs), 0644)
 
-	configJs, _ := json.Marshal(grimConfig)
-	ioutil.WriteFile(filepath.Join(configRoot, "config.json"), configJs, 0644)
+	localConfigTemplate := `{
+		"PathToCloneIn": "%v"
+	}`
+	localJs := fmt.Sprintf(localConfigTemplate, clonePath)
 
-	localConfig := &config{PathToCloneIn: &clonePath}
-	localJs, _ := json.Marshal(localConfig)
-
-	ioutil.WriteFile(filepath.Join(configRoot, owner, repo, "config.json"), localJs, 0644)
+	ioutil.WriteFile(filepath.Join(configRoot, owner, repo, "config.json"), []byte(localJs), 0644)
 	var g Instance
 	g.SetConfigRoot(configRoot)
 
