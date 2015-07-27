@@ -5,381 +5,308 @@ import "testing"
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-func TestGlobalEffectiveFailureTemplate(t *testing.T) {
-	global := &config{FailureTemplate: s("template")}
 
-	if ec := buildGlobalEffectiveConfig(global); ec.failureTemplate != "template" {
-		t.Errorf("Did not set effective correctly %v", ec)
+func TestGlobalEffectiveFailureTemplate(t *testing.T) {
+	gc := globalConfig{"FailureTemplate": "template"}
+
+	if gc.failureTemplate() != "template" {
+		t.Errorf("Did not set effective correctly %v", gc)
 	}
 
-	none := &config{}
+	none := globalConfig{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.failureTemplate != ps(templateForFailureandError("Failure during")) {
-		t.Errorf("No defaulting %v", ec)
+	if none.failureTemplate() != *templateForFailureandError("Failure during") {
+		t.Errorf("No defaulting %v", none)
 	}
 }
 
 func TestGlobalEffectiveSuccessTemplate(t *testing.T) {
-	global := &config{SuccessTemplate: s("template")}
+	gc := globalConfig{"SuccessTemplate": "template"}
 
-	if ec := buildGlobalEffectiveConfig(global); ec.successTemplate != "template" {
-		t.Errorf("Did not set effective correctly %v", ec)
+	if gc.successTemplate() != "template" {
+		t.Errorf("Did not set effective correctly %v", gc)
 	}
 
-	none := &config{}
+	none := globalConfig{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.successTemplate != ps(templateForSuccess()) {
-		t.Errorf("No defaulting %v", ec)
+	if none.successTemplate() != *templateForSuccess() {
+		t.Errorf("No defaulting %v", none)
 	}
 }
 
 func TestGlobalEffectiveErrorTemplate(t *testing.T) {
-	global := &config{ErrorTemplate: s("template")}
+	gc := globalConfig{"ErrorTemplate": "template"}
 
-	if ec := buildGlobalEffectiveConfig(global); ec.errorTemplate != "template" {
-		t.Errorf("Did not set effective correctly %v", ec)
+	if gc.errorTemplate() != "template" {
+		t.Errorf("Did not set effective correctly %v", gc)
 	}
 
-	none := &config{}
+	none := globalConfig{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.errorTemplate != ps(templateForFailureandError("Error during")) {
-		t.Errorf("No defaulting %v", ec)
+	if none.errorTemplate() != *templateForFailureandError("Error during") {
+		t.Errorf("No defaulting %v", none)
 	}
 }
 
 func TestGlobalEffectivePendingTemplate(t *testing.T) {
-	global := &config{PendingTemplate: s("template")}
+	gc := globalConfig{"PendingTemplate": "template"}
 
-	if ec := buildGlobalEffectiveConfig(global); ec.pendingTemplate != "template" {
-		t.Errorf("Did not set effective correctly %v", ec)
+	if gc.pendingTemplate() != "template" {
+		t.Errorf("Did not set effective correctly %v", gc)
 	}
 
-	none := &config{}
+	none := globalConfig{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.pendingTemplate != ps(templateForStart()) {
-		t.Errorf("No defaulting %v", ec)
+	if none.pendingTemplate() != *templateForStart() {
+		t.Errorf("No defaulting %v", none)
 	}
 }
 
 func TestGlobalEffectiveGrimServerId(t *testing.T) {
-	global := &config{GrimServerID: s("id")}
+	gc := globalConfig{"GrimServerID": "id"}
 
-	if ec := buildGlobalEffectiveConfig(global); ec.grimServerID != "id" {
-		t.Errorf("Did not set effective correctly %v", ec)
+	if gc.grimServerID() != "id" {
+		t.Errorf("Did not set effective correctly %v", gc)
 	}
 
-	noidButQueue := &config{GrimQueueName: s("q")}
+	noidButQueue := globalConfig{"GrimQueueName": "q"}
 
-	if ec := buildGlobalEffectiveConfig(noidButQueue); ec.grimServerID != "q" {
-		t.Errorf("No defaulting to q name %v", ec.workspaceRoot)
+	if noidButQueue.grimServerID() != "q" {
+		t.Errorf("No defaulting to q name %v", noidButQueue.grimServerID())
 	}
 
-	none := &config{}
+	none := globalConfig{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.grimServerID != "grim-queue" {
-		t.Errorf("No defaulting to queue name default %v", ec)
+	if none.grimServerID() != "grim-queue" {
+		t.Errorf("No defaulting to queue name default %v", none.grimServerID())
 	}
 }
 
 func TestGlobalEffectiveWorkSpaceRoot(t *testing.T) {
-	global := &config{WorkspaceRoot: s("ws")}
+	gc := globalConfig{"WorkspaceRoot": "ws"}
 
-	if ec := buildGlobalEffectiveConfig(global); ec.workspaceRoot != "ws" {
-		t.Errorf("Did not set effective correctly %v", ec)
+	if gc.workspaceRoot() != "ws" {
+		t.Errorf("Did not set effective correctly %v", gc)
 	}
 
-	none := &config{}
+	none := globalConfig{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.workspaceRoot != "/var/tmp/grim" {
-		t.Errorf("No defaulting %v", ec)
+	if none.workspaceRoot() != "/var/tmp/grim" {
+		t.Errorf("No defaulting %v", none)
 	}
 }
 
 func TestGlobalEffectiveResultRoot(t *testing.T) {
-	global := &config{ResultRoot: s("result")}
+	gc := globalConfig{"ResultRoot": "result"}
 
-	if ec := buildGlobalEffectiveConfig(global); ec.resultRoot != "result" {
-		t.Errorf("Did not set effective correctly %v", ec)
+	if gc.resultRoot() != "result" {
+		t.Errorf("Did not set effective correctly %v", gc)
 	}
 
-	none := &config{}
+	none := globalConfig{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.resultRoot != "/var/log/grim" {
-		t.Errorf("No defaulting %v", ec)
+	if none.resultRoot() != "/var/log/grim" {
+		t.Errorf("No defaulting %v", none)
 	}
 }
 
 func TestGlobalEffectiveGrimQueueName(t *testing.T) {
-	global := &config{GrimQueueName: s("queue")}
+	gc := globalConfig{"GrimQueueName": "queue"}
 
-	if ec := buildGlobalEffectiveConfig(global); ec.grimQueueName != "queue" {
-		t.Errorf("Did not set effective correctly %v", ec)
+	if gc.grimQueueName() != "queue" {
+		t.Errorf("Did not set effective correctly %v", gc)
 	}
 
-	none := &config{}
+	none := globalConfig{}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.grimQueueName != "grim-queue" {
-		t.Errorf("No defaulting %v", ec)
+	if none.grimQueueName() != "grim-queue" {
+		t.Errorf("No defaulting %v", none)
 	}
 }
 
 func TestGlobalEffectiveConfigNoDefaults(t *testing.T) {
-	global := &config{
-		AWSRegion:    s("region"),
-		AWSKey:       s("key"),
-		AWSSecret:    s("secret"),
-		GitHubToken:  s("ghtoken"),
-		HipChatRoom:  s("hcRoom"),
-		HipChatToken: s("hcToken")}
-
-	if ec := buildGlobalEffectiveConfig(global); ec.awsRegion != "region" ||
-		ec.awsKey != "key" ||
-		ec.awsSecret != "secret" ||
-		ec.gitHubToken != "ghtoken" ||
-		ec.hipChatRoom != "hcRoom" ||
-		ec.hipChatToken != "hcToken" {
-		t.Errorf("Did not set effective correctly %v", ec)
+	gc := globalConfig{
+		"AWSRegion":    "region",
+		"AWSKey":       "key",
+		"AWSSecret":    "secret",
+		"GitHubToken":  "ghtoken",
+		"HipChatRoom":  "hcRoom",
+		"HipChatToken": "hcToken",
 	}
 
-	none := &config{}
+	if gc.awsRegion() != "region" ||
+		gc.awsKey() != "key" ||
+		gc.awsSecret() != "secret" ||
+		gc.gitHubToken() != "ghtoken" ||
+		gc.hipChatRoom() != "hcRoom" ||
+		gc.hipChatToken() != "hcToken" {
+		t.Errorf("Did not set effective correctly %v", gc)
+	}
 
-	if ec := buildGlobalEffectiveConfig(none); ec.awsRegion != "" ||
-		ec.awsKey != "" ||
-		ec.awsSecret != "" ||
-		ec.gitHubToken != "" ||
-		ec.hipChatRoom != "" ||
-		ec.hipChatToken != "" {
-		t.Errorf("Defaulted undefaultable vals %v", ec)
+	none := globalConfig{}
+
+	if none.awsRegion() != "" ||
+		none.awsKey() != "" ||
+		none.awsSecret() != "" ||
+		none.gitHubToken() != "" ||
+		none.hipChatRoom() != "" ||
+		none.hipChatToken() != "" {
+		t.Errorf("Defaulted undefaultable vals %v", none)
 	}
 }
 
 func TestLocalEffectiveConfigSnsTopic(t *testing.T) {
-	global := effectiveConfig{snsTopicName: "global"}
-	has := config{SnsTopicName: s("local")}
-	none := config{}
+	gc := globalConfig{"SNSTopicName": "global"}
+	has := localConfig{"foo", "bar", configMap{"SNSTopicName": "local"}, gc}
+	none := localConfig{"foo", "bar", configMap{}, gc}
 
-	if ec := buildLocalEffectiveConfig(global, &has, "foo", "bar"); ec.snsTopicName != "local" {
-		t.Errorf("local didnt exists %v", ec)
+	if has.snsTopicName() != "local" {
+		t.Errorf("local didnt exists %v", has)
 	}
 
-	if ec := buildLocalEffectiveConfig(global, &none, "foo", "bar"); ec.snsTopicName != "grim-foo-bar-repo-topic" {
-		t.Errorf("didnt default %v", ec)
-	}
-}
-
-func TestLocalEffectiveConfigPathIsNotGlobal(t *testing.T) {
-	global := effectiveConfig{pathToCloneIn: "global"}
-	has := config{PathToCloneIn: s("local")}
-	none := config{}
-
-	if ec := buildLocalEffectiveConfig(global, &has, "foo", "bar"); ec.pathToCloneIn != "local" {
-		t.Errorf("local didnt exists %v", ec)
-	}
-
-	if ec := buildLocalEffectiveConfig(global, &none, "foo", "bar"); ec.pathToCloneIn != "" {
-		t.Errorf("had global path %v", ec)
+	if none.snsTopicName() != "grim-foo-bar-repo-topic" {
+		t.Errorf("didnt default %v", none)
 	}
 }
 
 func TestLocalEffectiveConfigDoesOverwriteGlobals(t *testing.T) {
-	global := effectiveConfig{
-		pendingTemplate: "global",
-		errorTemplate:   "global",
-		successTemplate: "global",
-		failureTemplate: "global",
-		gitHubToken:     "global",
-		pathToCloneIn:   "global",
-		hipChatRoom:     "global",
-		hipChatToken:    "global"}
-
-	has := config{
-		PendingTemplate: s("local"),
-		ErrorTemplate:   s("local"),
-		SuccessTemplate: s("local"),
-		FailureTemplate: s("local"),
-		GitHubToken:     s("local"),
-		PathToCloneIn:   s("local"),
-		HipChatRoom:     s("local"),
-		HipChatToken:    s("local")}
-
-	none := config{}
-
-	if ec := buildLocalEffectiveConfig(global, &has, "foo", "bar"); ec.gitHubToken != "local" ||
-		ec.pendingTemplate != "local" ||
-		ec.errorTemplate != "local" ||
-		ec.successTemplate != "local" ||
-		ec.failureTemplate != "local" ||
-		ec.hipChatRoom != "local" ||
-		ec.hipChatToken != "local" {
-		t.Errorf("local did not overwrite global %v", ec)
+	gc := globalConfig{
+		"PendingTemplate": "global",
+		"ErrorTemplate":   "global",
+		"SuccessTemplate": "global",
+		"FailureTemplate": "global",
+		"GitHubToken":     "global",
+		"PathToCloneIn":   "global",
+		"HipChatRoom":     "global",
+		"HipChatToken":    "global",
 	}
 
-	if ec := buildLocalEffectiveConfig(global, &none, "foo", "bar"); ec.gitHubToken != "global" ||
-		ec.pendingTemplate != "global" ||
-		ec.errorTemplate != "global" ||
-		ec.successTemplate != "global" ||
-		ec.failureTemplate != "global" ||
-		ec.hipChatRoom != "global" ||
-		ec.hipChatToken != "global" {
-		t.Errorf("global does not back stop local %v", ec)
+	has := localConfig{"foo", "bar", configMap{
+		"PendingTemplate": "local",
+		"ErrorTemplate":   "local",
+		"SuccessTemplate": "local",
+		"FailureTemplate": "local",
+		"GitHubToken":     "local",
+		"PathToCloneIn":   "local",
+		"HipChatRoom":     "local",
+		"HipChatToken":    "local",
+	}, gc}
+
+	none := localConfig{"foo", "bar", configMap{}, gc}
+
+	if has.gitHubToken() != "local" ||
+		has.pendingTemplate() != "local" ||
+		has.errorTemplate() != "local" ||
+		has.successTemplate() != "local" ||
+		has.failureTemplate() != "local" ||
+		has.hipChatRoom() != "local" ||
+		has.hipChatToken() != "local" {
+		t.Errorf("local did not overwrite global %v", has)
+	}
+
+	if none.gitHubToken() != "global" ||
+		none.pendingTemplate() != "global" ||
+		none.errorTemplate() != "global" ||
+		none.successTemplate() != "global" ||
+		none.failureTemplate() != "global" ||
+		none.hipChatRoom() != "global" ||
+		none.hipChatToken() != "global" {
+		t.Errorf("global does not back stop local %v", none)
 	}
 
 }
 
 func TestLocalEffectiveConfigDoesntOverwriteGlobals(t *testing.T) {
-	global := effectiveConfig{
-		grimQueueName: "global.grimQueueName",
-		resultRoot:    "global.resultRoot",
-		workspaceRoot: "global.workspaceRoot",
-		awsRegion:     "global.awsRegion",
-		awsKey:        "global.awsKey",
-		awsSecret:     "global.awsSecret",
-		grimServerID:  "global.grimServerID"}
+	gc := globalConfig{
+		"GrimQueueName": "global.grimQueueName",
+		"ResultRoot":    "global.resultRoot",
+		"WorkspaceRoot": "global.workspaceRoot",
+		"AWSRegion":     "global.awsRegion",
+		"AWSKey":        "global.awsKey",
+		"AWSSecret":     "global.awsSecret",
+		"GrimServerID":  "grimServerID",
+	}
 
-	local := config{
-		GrimQueueName: s("local.grimQueueName"),
-		ResultRoot:    s("local.resultRoot"),
-		WorkspaceRoot: s("local.workspaceRoot"),
-		AWSRegion:     s("local.awsRegion"),
-		AWSKey:        s("local.awsKey"),
-		AWSSecret:     s("local.awsSecret"),
-		GrimServerID:  s("local.grimServerID")}
+	local := localConfig{"foo", "bar", configMap{
+		"GrimQueueName": "local.grimQueueName",
+		"ResultRoot":    "local.resultRoot",
+		"WorkspaceRoot": "local.workspaceRoot",
+		"AWSRegion":     "local.awsRegion",
+		"AWSKey":        "local.awsKey",
+		"AWSSecret":     "local.awsSecret",
+		"GrimServerID":  "local.grimServerID",
+	}, gc}
 
-	ec := buildLocalEffectiveConfig(global, &local, "foo", "bar")
-
-	if ec.grimQueueName != "global.grimQueueName" ||
-		ec.resultRoot != "global.resultRoot" ||
-		ec.workspaceRoot != "global.workspaceRoot" ||
-		ec.awsRegion != "global.awsRegion" ||
-		ec.awsKey != "global.awsKey" ||
-		ec.awsSecret != "global.awsSecret" ||
-		ec.grimServerID != "global.grimServerID" {
-		t.Errorf("local overwrote global. %v", ec)
+	if local.grimQueueName() != "global.grimQueueName" ||
+		local.resultRoot() != "global.resultRoot" ||
+		local.workspaceRoot() != "global.workspaceRoot" ||
+		local.awsRegion() != "global.awsRegion" ||
+		local.awsKey() != "global.awsKey" ||
+		local.awsSecret() != "global.awsSecret" ||
+		local.grimServerID() != "grimServerID" {
+		t.Errorf("local overwrote global. %v", local)
 	}
 }
 
 func TestValidateLocalEffectiveConfig(t *testing.T) {
-	if err := validateLocalEffectiveConfig(effectiveConfig{}); err == nil {
-		t.Errorf("validated with no topic name")
-	}
-
-	if err := validateLocalEffectiveConfig(effectiveConfig{snsTopicName: "foo.go"}); err == nil {
+	errs := localConfig{local: configMap{"SNSTopicName": "foo.go"}}.errors()
+	if len(errs) == 0 {
 		t.Errorf("validated with period in name")
 	}
 }
 
 func TestValidateEffectiveConfig(t *testing.T) {
-	if err := validateEffectiveConfig(effectiveConfig{}); err == nil {
-		t.Errorf("validated with no credentials")
+	checks := []struct {
+		gc             globalConfig
+		shouldValidate bool
+	}{
+		{globalConfig{}, false},
+		{globalConfig{"AWSRegion": "reg", "AWSKey": "key"}, false},
+		{globalConfig{"AWSSecret": "secret", "AWSRegion": "region"}, false},
+		{globalConfig{"AWSSecret": "secret", "AWSRegion": "region", "AWSKey": "key"}, true},
 	}
+	for _, check := range checks {
+		errs := check.gc.errors()
+		errsEmpty := len(errs) == 0
 
-	if err := validateEffectiveConfig(effectiveConfig{awsRegion: "reg", awsKey: "key"}); err == nil {
-		t.Errorf("validated with no secret")
-	}
-
-	if err := validateEffectiveConfig(effectiveConfig{awsSecret: "secret", awsKey: "key"}); err == nil {
-		t.Errorf("validated with no region")
-	}
-
-	if err := validateEffectiveConfig(effectiveConfig{awsSecret: "secret", awsRegion: "region"}); err == nil {
-		t.Errorf("validated with no key")
-	}
-
-	if err := validateEffectiveConfig(effectiveConfig{awsSecret: "secret", awsRegion: "region", awsKey: "key"}); err != nil {
-		t.Errorf("didnt validate with all credentials")
+		if errsEmpty && !check.shouldValidate {
+			t.Errorf("invalid config didn't fail validation: %v", check.gc)
+		} else if !errsEmpty && check.shouldValidate {
+			t.Errorf("valid config failed validation: %v", check.gc)
+		}
 	}
 }
 
 func TestLoadGlobalConfig(t *testing.T) {
-	config, err := loadGlobalConfig("./test_data/config_test")
+	ec, err := getEffectiveGlobalConfig("./test_data/config_test")
 	if err != nil {
-		t.Errorf("|%v|", err)
-		t.FailNow()
+		t.Fatalf("|%v|", err)
 	}
 
-	if ps(config.GrimServerID) != "def-serverid" {
-		t.Errorf("Didn't match:\n%v", config)
+	if ec.grimServerID != "def-serverid" {
+		t.Errorf("Didn't match:\n%v", ec)
 	}
 }
 
 func TestLoadRepoConfig(t *testing.T) {
-	config, err := loadLocalConfig("./test_data/config_test", "MediaMath", "foo")
+	ec, err := getEffectiveConfig("./test_data/config_test", "MediaMath", "foo")
 	if err != nil {
-		t.Errorf("|%v|", err)
-		t.FailNow()
+		t.Fatalf("|%v|", err)
 	}
 
-	if ps(config.PathToCloneIn) != "go/src/github.com/MediaMath/foo" {
-		t.Errorf("Didn't match:\n%v", config)
+	if ec.pathToCloneIn != "go/src/github.com/MediaMath/foo" {
+		t.Errorf("Didn't match:\n%v", ec)
 	}
 }
 
 func TestLoadConfig(t *testing.T) {
-	config, err := loadConfig("./test_data/config_test/config.json")
+	ec, err := getEffectiveGlobalConfig("./test_data/config_test")
 	if err != nil {
-		t.Errorf("|%v|", err)
-		t.FailNow()
+		t.Fatalf("|%v|", err)
 	}
 
-	if ps(config.HipChatRoom) != "def-hcroom" {
+	if ec.hipChatRoom != "def-hcroom" {
 		t.Errorf("Didn't load correctly")
-	}
-}
-
-func ps(s *string) string {
-	if s == nil {
-		return ""
-	}
-
-	return *s
-}
-
-func s(s string) *string {
-	return &s
-}
-
-var testEmpty = ""
-var testNotEmpty = "foo"
-
-func TestFirstNonEmptyPtrIsEmptyStringInEmptyCase(t *testing.T) {
-	if firstNonEmptyStringPtr() != "" {
-		t.Errorf("Didnt default")
-	}
-}
-
-func TestFirstNonEmptyPtr(t *testing.T) {
-
-	if firstNonEmptyStringPtr(&testNotEmpty, nil, &testEmpty) != testNotEmpty {
-		t.Errorf("didn't find it first")
-	}
-
-	if firstNonEmptyStringPtr(nil, &testNotEmpty, nil, &testEmpty) != testNotEmpty {
-		t.Errorf("didn't find it with nil in front ")
-	}
-
-	if firstNonEmptyStringPtr(&testEmpty, &testNotEmpty, nil, &testEmpty) != testNotEmpty {
-		t.Errorf("didn't find it with empty in front")
-	}
-
-	var secondEmpty = "second"
-	if firstNonEmptyStringPtr(&testEmpty, &testNotEmpty, &secondEmpty) != testNotEmpty {
-		t.Errorf("didn't find it with other string")
-	}
-
-}
-
-func TestStringPtrNotEmpty(t *testing.T) {
-	if stringPtrNotEmpty(nil) {
-		t.Errorf("Thinks nil is not empty")
-	}
-
-	var testEmpty = ""
-	if stringPtrNotEmpty(&testEmpty) {
-		t.Errorf("Thinks empty is not empty")
-	}
-
-	if !stringPtrNotEmpty(&testNotEmpty) {
-		t.Errorf("Thinks not empty is")
 	}
 }
 
