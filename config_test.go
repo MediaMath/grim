@@ -1,6 +1,9 @@
 package grim
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -249,9 +252,14 @@ func TestLocalEffectiveConfigDoesntOverwriteGlobals(t *testing.T) {
 }
 
 func TestValidateLocalEffectiveConfig(t *testing.T) {
-	errs := localConfig{local: configMap{"SNSTopicName": "foo.go"}}.errors()
+	snsTopicName := "foo.go"
+	errs := localConfig{local: configMap{"SNSTopicName": snsTopicName}}.errors()
 	if len(errs) == 0 {
 		t.Errorf("validated with period in name")
+	}
+
+	if !strings.Contains(errs[0].Error(), "[ " + snsTopicName + " ]") {
+		t.Errorf("error message should mention SNSTopicName %v", errs[0].Error())
 	}
 }
 
