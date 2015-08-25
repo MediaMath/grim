@@ -1,11 +1,11 @@
 package grim
 
 import (
+	"bytes"
 	"fmt"
-	"testing"
 	"log"
 	"strings"
-	"bytes"
+	"testing"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -28,8 +28,8 @@ var testConfig = &effectiveConfig{
 	successTemplate: "success {{.UserName}}"}
 
 var testHook = hookEvent{
-	Owner: "MediaMath",
-	Repo: "grim",
+	Owner:     "MediaMath",
+	Repo:      "grim",
 	EventName: "push",
 }
 
@@ -55,8 +55,8 @@ func TestLoggingHipChatErrorCreatingMessage(t *testing.T) {
 
 	testConfigWithHC := &effectiveConfig{
 		pendingTemplate: "pending {{.NOPE}}",
-		hipChatToken: "NOT_EMPTY",
-		hipChatRoom: "NON_EMPTY",
+		hipChatToken:    "NOT_EMPTY",
+		hipChatRoom:     "NON_EMPTY",
 	}
 
 	notify(testConfigWithHC, testHook, "", "", GrimPending, logger)
@@ -73,8 +73,8 @@ func TestLoggingHipChatErrorSendingMessage(t *testing.T) {
 
 	testConfigWithHC := &effectiveConfig{
 		pendingTemplate: "pending {{.Owner}}",
-		hipChatToken: "NOT_EMPTY",
-		hipChatRoom: "NON_EMPTY",
+		hipChatToken:    "NOT_EMPTY",
+		hipChatRoom:     "NON_EMPTY",
 	}
 
 	notify(testConfigWithHC, testHook, "", "", GrimPending, logger)
@@ -95,8 +95,8 @@ func TestLogDirForBasename(t *testing.T) {
 
 	testConfigWithHC := &effectiveConfig{
 		errorTemplate: "error {{.LogDir}}",
-		hipChatToken: "NOT_EMPTY",
-		hipChatRoom: "NON_EMPTY",
+		hipChatToken:  "NOT_EMPTY",
+		hipChatRoom:   "NON_EMPTY",
 	}
 
 	notify(testConfigWithHC, testHook, "", "temp/MediaMath/grim/123123", GrimError, logger)
