@@ -100,6 +100,7 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 			return 0, fmt.Errorf("Failed to kill process: %v", err)
 		}
 		<-done
+		exitCode = -23
 	case err := <-done:
 		if err != nil {
 			exitCode, err = getExitCode(err)
