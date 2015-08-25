@@ -95,7 +95,7 @@ func setPolicy(key, secret, region, queueARN, queueURL string, topicARNs []strin
 		Attributes: map[string]*string{
 			"Policy": aws.String(policy),
 		},
-		QueueURL: aws.String(queueURL),
+		QueueUrl: aws.String(queueURL),
 	}
 
 	_, err = svc.SetQueueAttributes(params)
@@ -111,20 +111,20 @@ func setPolicy(key, secret, region, queueARN, queueURL string, topicARNs []strin
 func getQueueURLByName(config *aws.Config, queue string) (string, error) {
 	svc := sqs.New(config)
 
-	params := &sqs.GetQueueURLInput{
+	params := &sqs.GetQueueUrlInput{
 		QueueName: aws.String(queue),
 	}
 
-	resp, err := svc.GetQueueURL(params)
+	resp, err := svc.GetQueueUrl(params)
 	if awserr, ok := err.(awserr.Error); ok {
 		return "", fmt.Errorf("aws error while getting URL for SQS queue: %v %v", awserr.Code(), awserr.Message())
 	} else if err != nil {
 		return "", fmt.Errorf("error while getting URL for SQS queue: %v", err)
-	} else if resp == nil || resp.QueueURL == nil {
+	} else if resp == nil || resp.QueueUrl == nil {
 		return "", nil
 	}
 
-	return *resp.QueueURL, nil
+	return *resp.QueueUrl, nil
 }
 
 func getARNForQueueURL(config *aws.Config, queueURL string) (string, error) {
@@ -133,7 +133,7 @@ func getARNForQueueURL(config *aws.Config, queueURL string) (string, error) {
 	arnKey := "QueueArn"
 
 	params := &sqs.GetQueueAttributesInput{
-		QueueURL: aws.String(string(queueURL)),
+		QueueUrl: aws.String(string(queueURL)),
 		AttributeNames: []*string{
 			aws.String(arnKey),
 		},
@@ -173,19 +173,19 @@ func createQueue(config *aws.Config, queue string) (string, error) {
 		return "", fmt.Errorf("aws error while creating SQS queue: %v %v", awserr.Code(), awserr.Message())
 	} else if err != nil {
 		return "", fmt.Errorf("error while creating SQS queue: %v", err)
-	} else if resp == nil || resp.QueueURL == nil {
+	} else if resp == nil || resp.QueueUrl == nil {
 		return "", nil
 	}
 
-	return *resp.QueueURL, nil
+	return *resp.QueueUrl, nil
 }
 
 func getMessage(config *aws.Config, queueURL string) (*sqs.Message, error) {
 	svc := sqs.New(config)
 
 	params := &sqs.ReceiveMessageInput{
-		QueueURL:            aws.String(queueURL),
-		MaxNumberOfMessages: aws.Long(1),
+		QueueUrl:            aws.String(queueURL),
+		MaxNumberOfMessages: aws.Int64(1),
 	}
 
 	resp, err := svc.ReceiveMessage(params)
@@ -204,7 +204,7 @@ func deleteMessage(config *aws.Config, queueURL string, receiptHandle string) er
 	svc := sqs.New(config)
 
 	params := &sqs.DeleteMessageInput{
-		QueueURL:      aws.String(queueURL),
+		QueueUrl:      aws.String(queueURL),
 		ReceiptHandle: aws.String(receiptHandle),
 	}
 

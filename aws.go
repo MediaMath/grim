@@ -13,7 +13,7 @@ import (
 
 func getConfig(key, secret, region string) *aws.Config {
 	creds := credentials.NewStaticCredentials(key, secret, "")
-	return &aws.Config{Credentials: creds, Region: region}
+	return &aws.Config{Credentials: creds, Region: &region}
 }
 
 func getAccountIDFromARN(arn string) string {

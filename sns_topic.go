@@ -52,7 +52,7 @@ func createSubscription(config *aws.Config, topicARN, queueARN string) (string, 
 
 	params := &sns.SubscribeInput{
 		Protocol: aws.String("sqs"),
-		TopicARN: aws.String(topicARN),
+		TopicArn: aws.String(topicARN),
 		Endpoint: aws.String(queueARN),
 	}
 
@@ -61,18 +61,18 @@ func createSubscription(config *aws.Config, topicARN, queueARN string) (string, 
 		return "", fmt.Errorf("aws error while creating subscription to SNS topic: %v %v", awserr.Code(), awserr.Message())
 	} else if err != nil {
 		return "", fmt.Errorf("error while creating subscription to SNS topic: %v", err)
-	} else if resp == nil || resp.SubscriptionARN == nil {
+	} else if resp == nil || resp.SubscriptionArn == nil {
 		return "", fmt.Errorf("error while creating subscription to SNS topic")
 	}
 
-	return *resp.SubscriptionARN, nil
+	return *resp.SubscriptionArn, nil
 }
 
 func findSubscription(config *aws.Config, topicARN, queueARN string) (string, error) {
 	svc := sns.New(config)
 
 	params := &sns.ListSubscriptionsByTopicInput{
-		TopicARN: aws.String(topicARN),
+		TopicArn: aws.String(topicARN),
 	}
 
 	for {
@@ -86,8 +86,8 @@ func findSubscription(config *aws.Config, topicARN, queueARN string) (string, er
 		}
 
 		for _, sub := range resp.Subscriptions {
-			if sub.Endpoint != nil && *sub.Endpoint == queueARN && sub.Protocol != nil && *sub.Protocol == "sqs" && sub.SubscriptionARN != nil {
-				return *sub.SubscriptionARN, nil
+			if sub.Endpoint != nil && *sub.Endpoint == queueARN && sub.Protocol != nil && *sub.Protocol == "sqs" && sub.SubscriptionArn != nil {
+				return *sub.SubscriptionArn, nil
 			}
 		}
 
@@ -113,11 +113,11 @@ func createTopic(config *aws.Config, topic string) (string, error) {
 		return "", fmt.Errorf("aws error while creating SNS topic: %v %v", awserr.Code(), awserr.Message())
 	} else if err != nil {
 		return "", fmt.Errorf("error while creating SNS topic: %v", err)
-	} else if resp == nil || resp.TopicARN == nil {
+	} else if resp == nil || resp.TopicArn == nil {
 		return "", nil
 	}
 
-	return *resp.TopicARN, nil
+	return *resp.TopicArn, nil
 }
 
 func findExistingTopicARN(config *aws.Config, topic string) (string, error) {
@@ -138,8 +138,8 @@ func findExistingTopicARN(config *aws.Config, topic string) (string, error) {
 		}
 
 		for _, topicPtr := range resp.Topics {
-			if topicPtr != nil && topicPtr.TopicARN != nil && strings.HasSuffix(*topicPtr.TopicARN, topic) {
-				return *topicPtr.TopicARN, nil
+			if topicPtr != nil && topicPtr.TopicArn != nil && strings.HasSuffix(*topicPtr.TopicArn, topic) {
+				return *topicPtr.TopicArn, nil
 			}
 		}
 
