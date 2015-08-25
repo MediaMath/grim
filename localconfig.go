@@ -69,7 +69,7 @@ func (lc localConfig) errors() (errs []error) {
 	if snsTopicName == "" {
 		errs = append(errs, fmt.Errorf("Must have a Sns topic name!"))
 	} else if strings.Contains(snsTopicName, ".") {
-		errs = append(errs, fmt.Errorf("Cannot have . in sns topic name.  Default topic names can be set in the build config file using the SnsTopicName parameter."))
+		errs = append(errs, fmt.Errorf("Cannot have . in sns topic name [ %s ].  Default topic names can be set in the build config file using the SnsTopicName parameter.", snsTopicName))
 	}
 	return
 }
