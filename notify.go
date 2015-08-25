@@ -3,8 +3,8 @@ package grim
 import (
 	"bytes"
 	"fmt"
-	"text/template"
 	"log"
+	"text/template"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
