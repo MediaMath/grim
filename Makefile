@@ -23,10 +23,10 @@ endif
 
 grimd: 
 	go get ./...
-	go build $(LDFLAGS) -o $(GOPATH)/bin/grimd ./grimd
+	go install $(LDFLAGS) github.com/MediaMath/grim/grimd
 
 tmp/grimd-$(VERSION).zip: grimd | tmp 
-	zip -r -j $@ $(GOPATH)/bin/grimd
+	export PATH=$$PATH:$$GOPATH/bin; zip -r -j $@ $$(which grimd)
 
 test:
 	go test $(TEST_VERBOSITY) ./...
