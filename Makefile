@@ -26,7 +26,7 @@ grimd:
 	go install $(LDFLAGS) github.com/MediaMath/grim/grimd
 
 tmp/grimd-$(VERSION).zip: grimd | tmp 
-	export PATH=$$PATH:$$GOPATH/bin; zip -r -j $@ $$(which grimd)
+	export PATH=$$PATH:$${GOPATH//://bin:}/bin; zip -r -j $@ $$(which grimd)
 
 test:
 	go test $(TEST_VERBOSITY) ./...
