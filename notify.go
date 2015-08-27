@@ -13,34 +13,50 @@ import (
 
 type grimNotification interface {
 	GithubRefStatus() refStatusState
-	HipchatNotification(context *grimNotificationContext, config *effectiveConfig) (string, messageColor, error)
+	HipchatNotification(context *grimNotificationContext, config *effectiveConfig) (string, string, error)
 }
 
 type standardGrimNotification struct {
 	githubState  refStatusState
-	hipchatColor messageColor
+	getHipchatColor func(*effectiveConfig) string
 	getTemplate  func(*effectiveConfig) string
 }
 
 //GrimPending is the notification used for pending builds.
-var GrimPending = &standardGrimNotification{RSPending, ColorYellow, func(c *effectiveConfig) string { return c.pendingTemplate }}
+var GrimPending = &standardGrimNotification{
+	RSPending,
+	func(c *effectiveConfig) string { return c.pendingColor },
+	func(c *effectiveConfig) string { return c.pendingTemplate },
+}
 
 //GrimError is the notification used for builds that cannot be run correctly.
-var GrimError = &standardGrimNotification{RSError, ColorGray, func(c *effectiveConfig) string { return c.errorTemplate }}
+var GrimError = &standardGrimNotification{
+	RSError,
+	func(c *effectiveConfig) string { return c.errorColor },
+	func(c *effectiveConfig) string { return c.errorTemplate },
+}
 
 //GrimFailure is the notification used when builds fail.
-var GrimFailure = &standardGrimNotification{RSFailure, ColorRed, func(c *effectiveConfig) string { return c.failureTemplate }}
+var GrimFailure = &standardGrimNotification{
+	RSFailure,
+	func(c *effectiveConfig) string { return c.failureColor },
+	func(c *effectiveConfig) string { return c.failureTemplate },
+}
 
 //GrimSuccess is the notification used when builds succeed.
-var GrimSuccess = &standardGrimNotification{RSSuccess, ColorGreen, func(c *effectiveConfig) string { return c.successTemplate }}
+var GrimSuccess = &standardGrimNotification{
+	RSSuccess,
+	func(c *effectiveConfig) string { return c.successColor },
+	func(c *effectiveConfig) string { return c.successTemplate },
+}
 
 func (s *standardGrimNotification) GithubRefStatus() refStatusState {
 	return s.githubState
 }
 
-func (s *standardGrimNotification) HipchatNotification(context *grimNotificationContext, config *effectiveConfig) (string, messageColor, error) {
+func (s *standardGrimNotification) HipchatNotification(context *grimNotificationContext, config *effectiveConfig) (string, string, error) {
 	message, err := context.render(s.getTemplate(config))
-	return message, s.hipchatColor, err
+	return message, s.getHipchatColor(config), err
 }
 
 type grimNotificationContext struct {

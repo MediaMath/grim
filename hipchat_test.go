@@ -14,7 +14,7 @@ func TestSendMessageToRoomSucceeds(t *testing.T) {
 	roomID := getEnvOrSkip(t, "HC_ROOM_ID")
 	from := "Grim"
 	message := "This is a test message."
-	color := ColorRandom
+	color := "random"
 
 	err := sendMessageToRoom(token, roomID, from, message, color)
 	if err != nil {

@@ -142,6 +142,23 @@ func (lc localConfig) failureTemplate() string {
 	return readStringWithDefaults(lc.local, "FailureTemplate", lc.global.failureTemplate())
 }
 
+func (lc localConfig) successColor() string {
+	return readStringWithDefaults(lc.local, "SuccessColor", lc.global.successColor())
+}
+
+func (lc localConfig) errorColor() string {
+	return readStringWithDefaults(lc.local, "ErrorColor", lc.global.errorColor())
+}
+
+func (lc localConfig) failureColor() string {
+	return readStringWithDefaults(lc.local, "FailureColor", lc.global.failureColor())
+}
+
+func (lc localConfig) pendingColor() string {
+	return readStringWithDefaults(lc.local, "PendingColor", lc.global.pendingColor())
+}
+
+
 func (lc localConfig) timeout() (to time.Duration) {
 	val := readIntWithDefaults(lc.local, "Timeout")
 

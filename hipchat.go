@@ -20,14 +20,14 @@ const (
 	ColorRandom messageColor = "random"
 )
 
-func sendMessageToRoom(token, roomID, from, message string, color messageColor) error {
+func sendMessageToRoom(token, roomID, from, message string, color string) error {
 	c := hipchat.Client{AuthToken: token}
 
 	req := hipchat.MessageRequest{
 		RoomId:        roomID,
 		From:          from,
 		Message:       message,
-		Color:         string(color),
+		Color:         color,
 		MessageFormat: hipchat.FormatText,
 		Notify:        false,
 	}

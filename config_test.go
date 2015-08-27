@@ -23,6 +23,20 @@ func TestGlobalEffectiveFailureTemplate(t *testing.T) {
 	}
 }
 
+func TestGlobalEffectiveFailureColor(t *testing.T) {
+	gc := globalConfig{"FailureColor": "purple"}
+
+	if gc.failureColor() != "purple" {
+		t.Errorf("Did not set effective correctly %v", gc)
+	}
+
+	// none := globalConfig{}
+
+	// if none.failureColor() != *colorForFailureandError("Failure during") {
+	// 	t.Errorf("No defaulting %v", none)
+	// }
+}
+
 func TestGlobalEffectiveSuccessTemplate(t *testing.T) {
 	gc := globalConfig{"SuccessTemplate": "template"}
 
