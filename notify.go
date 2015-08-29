@@ -17,9 +17,9 @@ type grimNotification interface {
 }
 
 type standardGrimNotification struct {
-	githubState  refStatusState
+	githubState     refStatusState
 	getHipchatColor func(*effectiveConfig) string
-	getTemplate  func(*effectiveConfig) string
+	getTemplate     func(*effectiveConfig) string
 }
 
 //GrimPending is the notification used for pending builds.

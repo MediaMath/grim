@@ -314,7 +314,7 @@ func TestValidateLocalEffectiveConfig(t *testing.T) {
 		t.Errorf("validated with period in name")
 	}
 
-	if !strings.Contains(errs[0].Error(), "[ " + snsTopicName + " ]") {
+	if !strings.Contains(errs[0].Error(), "[ "+snsTopicName+" ]") {
 		t.Errorf("error message should mention SNSTopicName %v", errs[0].Error())
 	}
 }

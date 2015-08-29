@@ -158,7 +158,6 @@ func (lc localConfig) pendingColor() string {
 	return readStringWithDefaults(lc.local, "PendingColor", lc.global.pendingColor())
 }
 
-
 func (lc localConfig) timeout() (to time.Duration) {
 	val := readIntWithDefaults(lc.local, "Timeout")
 
