@@ -44,6 +44,7 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 	cmd := exec.Command(execPath, args...)
 	cmd.Dir = workingDir
 	cmd.Env = env
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	var startErr error
 
@@ -84,23 +85,28 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 	}, nil
 }
 
-// kills a cmd process based on config timeout settings
 func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 	var exitCode int
-	// 1 deep channel for done
 	done := make(chan error, 1)
 
 	go func() {
-		done <- cmd.Wait()
+		exitErr := cmd.Wait()
+		exitCode = processExitCode(exitErr)
+		done <- exitErr
 	}()
 
 	select {
 	case <-time.After(timeout):
-		if err := cmd.Process.Kill(); err != nil {
-			return 0, fmt.Errorf("Failed to kill process: %v", err)
+		processGroupID, err := syscall.Getpgid(cmd.Process.Pid)
+		if err == nil {
+			if err := syscall.Kill(-processGroupID, syscall.SIGKILL); err != nil {
+				return 0, fmt.Errorf("Failed to kill process: %v", cmd.Process.Pid, err)
+			}
+		} else {
+			return 0, fmt.Errorf("Failed to get process group id: %v", cmd.Process.Pid, err)
 		}
 		<-done
-		exitCode = -23
+		//exitCode = -23
 	case err := <-done:
 		if err != nil {
 			exitCode, err = getExitCode(err)
@@ -112,17 +118,23 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 	return exitCode, nil
 }
 
-// gets the exit code from error
+func processExitCode(err error) int {
+	var exitCode int
+	if err != nil {
+		var exitErr error
+		if exitCode, exitErr = getExitCode(err); exitErr != nil {
+			exitCode = 127
+		}
+	}
+	return exitCode
+}
+
 func getExitCode(err error) (int, error) {
 	var exitCode int
 	if exitErr, ok := err.(*exec.ExitError); ok {
 		if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-			exitCode = status.ExitStatus()
-		} else {
-			return 0, fmt.Errorf("Wrong Wait Status: %v", err)
+			return status.ExitStatus(), nil
 		}
-	} else {
-		return 0, fmt.Errorf("Can not cast to ExitError: %v", err)
 	}
 	return exitCode, nil
 }

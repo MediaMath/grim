@@ -88,7 +88,10 @@ func TestRunEchoWithChan(t *testing.T) {
 func TestGetExitCode(t *testing.T) {
 	timeoutTime := time.Duration(1) * time.Second
 
-	cmd := exec.Command("grep", "go")
+	//This command creates a parent and child process
+	//so that we can test killing both parent and child
+	//processes
+	cmd := exec.Command("/bin/sh", "-c", "watch date > date.txt")
 
 	err := cmd.Start()
 	if err != nil {
@@ -97,7 +100,7 @@ func TestGetExitCode(t *testing.T) {
 
 	exCode, err := killProcessOnTimeout(cmd, timeoutTime)
 	if err != nil {
-		t.Error("process still running")
+		t.Errorf("process still running, Error: %v", err)
 	}
 
 	if exCode != 1 {
