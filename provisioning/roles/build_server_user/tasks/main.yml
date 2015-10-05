@@ -7,3 +7,9 @@
 
 - name: make sources directory for builder user 
   file: state=directory path={{ builder_home }}/.sources
+
+- name: add bashrc that sources go to builder
+  template: src=bashrc.j2 dest={{ builder_home }}/.bashrc owner={{ builder }} group={{ builder_group }} mode=0600
+
+- name: add bash profile that sources bashrc 
+  template: src=bash_profile.j2 dest={{ builder_home }}/.bash_profile owner={{ builder }} group={{ builder_group }} mode=0600
