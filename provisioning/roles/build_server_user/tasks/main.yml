@@ -1,0 +1,6 @@
+---
+- name: make sure apt cache is up to date 
+  apt: update_cache=yes upgrade=full
+
+- name: create the build server user (in shadow for supervisord)
+  user: name={{ builder }} shell=/bin/bash home={{ builder_home }} append=yes groups=shadow
