@@ -24,6 +24,10 @@ var (
 	defaultTemplateForStart   = templateForStart()
 	defaultTemplateForError   = templateForFailureandError("Error during")
 	defaultTemplateForSuccess = templateForSuccess()
+	defaultColorForSuccess    = colorForSuccess()
+	defaultColorForFailure    = colorForFailure()
+	defaultColorForError      = colorForError()
+	defaultColorForPending    = colorForPending()
 	defaultTemplateForFailure = templateForFailureandError("Failure during")
 )
 
@@ -48,6 +52,10 @@ type effectiveConfig struct {
 	errorTemplate     string
 	successTemplate   string
 	failureTemplate   string
+	pendingColor      string
+	errorColor        string
+	successColor      string
+	failureColor      string
 	timeout           int
 	usernameWhitelist []string
 }
@@ -198,6 +206,26 @@ func templateForSuccess() *string {
 func templateForFailureandError(preamble string) *string {
 	s := fmt.Sprintf("%s build of {{.Owner}}/{{.Repo}} initiated by a {{.EventName}} to {{.Target}} by {{.UserName}} ({{.LogDir}})", preamble)
 	return &s
+}
+
+func colorForSuccess() *string {
+	c := string(ColorGreen)
+	return &c
+}
+
+func colorForFailure() *string {
+	c := string(ColorRed)
+	return &c
+}
+
+func colorForError() *string {
+	c := string(ColorGray)
+	return &c
+}
+
+func colorForPending() *string {
+	c := string(ColorYellow)
+	return &c
 }
 
 func (ec *effectiveConfig) usernameCanBuild(username string) (allowed bool) {
