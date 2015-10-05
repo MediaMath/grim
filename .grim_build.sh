@@ -6,6 +6,7 @@ set -eu
 
 export GOPATH="$(pwd)/go"
 export PATH="$GOPATH/bin:$PATH"
+. "$HOME/.sources/packerrc"
 
 cd "./$CLONE_PATH"
 
