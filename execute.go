@@ -100,10 +100,10 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 		processGroupID, err := syscall.Getpgid(cmd.Process.Pid)
 		if err == nil {
 			if err := syscall.Kill(-processGroupID, syscall.SIGKILL); err != nil {
-				return 0, fmt.Errorf("Failed to kill process: %v", cmd.Process.Pid, err)
+				return 0, fmt.Errorf("Failed to kill process: %v, error: %v", cmd.Process.Pid, err)
 			}
 		} else {
-			return 0, fmt.Errorf("Failed to get process group id: %v", cmd.Process.Pid, err)
+			return 0, fmt.Errorf("Failed to get process group id: %v, error: %v", cmd.Process.Pid, err)
 		}
 		<-done
 	case err := <-done:
