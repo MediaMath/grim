@@ -87,13 +87,18 @@ func TestRunEchoWithChan(t *testing.T) {
 
 func TestKillProcessWithChildAndGrandChildOnTimeout(t *testing.T) {
 
-	timeoutTime := time.Duration(60) * time.Second
+	timeoutTime := time.Duration(5) * time.Second
 
-	cmd := exec.Command("/bin/sh", "-c", "(sleep 1000) & ((sleep 1000)& sleep 1000)& wait")
+	cmd := exec.Command("/bin/sh", "-c", "( sleep 2 )& (( sleep 2 )& sleep 2 )& wait")
 
 	err := cmd.Start()
 	if err != nil {
 		t.Error("can not start the command.")
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		t.Errorf("command finished with error: %v", err)
 	}
 
 	exCode, err := killProcessOnTimeout(cmd, timeoutTime)
@@ -101,7 +106,7 @@ func TestKillProcessWithChildAndGrandChildOnTimeout(t *testing.T) {
 		t.Errorf("process still running, Error: %v", err)
 	}
 
-	if exCode != 1 {
-		t.Error("process should return 1 as its exit code")
+	if exCode != 0 {
+		t.Error("process should return 0 as its exit code")
 	}
 }
