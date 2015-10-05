@@ -1,4 +1,4 @@
-.PHONY:	grimd publish test check clean run cover part ansible
+.PHONY:	grimd publish test check clean run cover part ansible packer
 
 # Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
 # Use of this source code is governed by a BSD-style
@@ -37,6 +37,9 @@ part:
 
 publish: part tmp/grimd-$(VERSION).zip
 	part -verbose -credentials=$(HOME)/.ivy2/credentials/$(ARTIFACTORY_HOST) -h="https://$(ARTIFACTORY_HOST)/artifactory" -r=$(REPOSITORY) -g=com.mediamath.grim -a=grimd -v=$(VERSION) tmp/grimd-$(VERSION).zip
+
+packer:
+	packer push provisioning/grim.json
 
 cover: tmp
 	cvr -o=tmp/coverage -short ./...

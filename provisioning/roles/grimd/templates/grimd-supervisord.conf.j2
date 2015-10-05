@@ -1,0 +1,9 @@
+[program:grimd]
+command={{ grimd_install_location }}/grimd
+directory=/var/lib/grim
+user=grim
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/grim/grimd.log
+environment=HOME="/var/lib/grim",USER="grim"
