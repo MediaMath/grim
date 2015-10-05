@@ -23,6 +23,20 @@ func TestGlobalEffectiveFailureTemplate(t *testing.T) {
 	}
 }
 
+func TestGlobalEffectiveFailureColor(t *testing.T) {
+	gc := globalConfig{"FailureColor": "purple"}
+
+	if gc.failureColor() != "purple" {
+		t.Errorf("Did not set effective correctly %v", gc)
+	}
+
+	none := globalConfig{}
+
+	if none.failureColor() != *colorForFailure() {
+		t.Errorf("No defaulting %v", none)
+	}
+}
+
 func TestGlobalEffectiveSuccessTemplate(t *testing.T) {
 	gc := globalConfig{"SuccessTemplate": "template"}
 
@@ -37,6 +51,20 @@ func TestGlobalEffectiveSuccessTemplate(t *testing.T) {
 	}
 }
 
+func TestGlobalEffectiveSuccessColor(t *testing.T) {
+	gc := globalConfig{"SuccessColor": "purple"}
+
+	if gc.successColor() != "purple" {
+		t.Errorf("Did not set effective correctly %v", gc)
+	}
+
+	none := globalConfig{}
+
+	if none.successColor() != *colorForSuccess() {
+		t.Errorf("No defaulting %v", none)
+	}
+}
+
 func TestGlobalEffectiveErrorTemplate(t *testing.T) {
 	gc := globalConfig{"ErrorTemplate": "template"}
 
@@ -47,6 +75,34 @@ func TestGlobalEffectiveErrorTemplate(t *testing.T) {
 	none := globalConfig{}
 
 	if none.errorTemplate() != *templateForFailureandError("Error during") {
+		t.Errorf("No defaulting %v", none)
+	}
+}
+
+func TestGlobalEffectiveErrorColor(t *testing.T) {
+	gc := globalConfig{"ErrorColor": "purple"}
+
+	if gc.errorColor() != "purple" {
+		t.Errorf("Did not set effective correctly %v", gc)
+	}
+
+	none := globalConfig{}
+
+	if none.errorColor() != *colorForError() {
+		t.Errorf("No defaulting %v", none)
+	}
+}
+
+func TestGlobalEffectivePendingColor(t *testing.T) {
+	gc := globalConfig{"PendingColor": "purple"}
+
+	if gc.pendingColor() != "purple" {
+		t.Errorf("Did not set effective correctly %v", gc)
+	}
+
+	none := globalConfig{}
+
+	if none.pendingColor() != *colorForPending() {
 		t.Errorf("No defaulting %v", none)
 	}
 }
@@ -258,7 +314,7 @@ func TestValidateLocalEffectiveConfig(t *testing.T) {
 		t.Errorf("validated with period in name")
 	}
 
-	if !strings.Contains(errs[0].Error(), "[ " + snsTopicName + " ]") {
+	if !strings.Contains(errs[0].Error(), "[ "+snsTopicName+" ]") {
 		t.Errorf("error message should mention SNSTopicName %v", errs[0].Error())
 	}
 }

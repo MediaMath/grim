@@ -151,6 +151,22 @@ func (gc globalConfig) successTemplate() string {
 	return readStringWithDefaults(gc, "SuccessTemplate", *defaultTemplateForSuccess)
 }
 
+func (gc globalConfig) successColor() string {
+	return readStringWithDefaults(gc, "SuccessColor", *defaultColorForSuccess)
+}
+
+func (gc globalConfig) errorColor() string {
+	return readStringWithDefaults(gc, "ErrorColor", *defaultColorForError)
+}
+
+func (gc globalConfig) failureColor() string {
+	return readStringWithDefaults(gc, "FailureColor", *defaultColorForFailure)
+}
+
+func (gc globalConfig) pendingColor() string {
+	return readStringWithDefaults(gc, "PendingColor", *defaultColorForPending)
+}
+
 func (gc globalConfig) failureTemplate() string {
 	return readStringWithDefaults(gc, "FailureTemplate", *defaultTemplateForFailure)
 }

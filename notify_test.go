@@ -108,30 +108,30 @@ func TestLogDirForBasename(t *testing.T) {
 }
 
 func TestPending(t *testing.T) {
-	if err := compareNotification(GrimPending, RSPending, ColorYellow, "pending rain"); err != nil {
+	if err := compareNotification(GrimPending, RSPending, "yellow", "pending rain"); err != nil {
 		t.Errorf("%v", err)
 	}
 }
 
 func TestError(t *testing.T) {
-	if err := compareNotification(GrimError, RSError, ColorGray, "error spain"); err != nil {
+	if err := compareNotification(GrimError, RSError, "gray", "error spain"); err != nil {
 		t.Errorf("%v", err)
 	}
 }
 
 func TestFailure(t *testing.T) {
-	if err := compareNotification(GrimFailure, RSFailure, ColorRed, "failure plain"); err != nil {
+	if err := compareNotification(GrimFailure, RSFailure, "red", "failure plain"); err != nil {
 		t.Errorf("%v", err)
 	}
 }
 
 func TestSuccess(t *testing.T) {
-	if err := compareNotification(GrimSuccess, RSSuccess, ColorGreen, "success mainly"); err != nil {
+	if err := compareNotification(GrimSuccess, RSSuccess, "green", "success mainly"); err != nil {
 		t.Errorf("%v", err)
 	}
 }
 
-func compareNotification(n *standardGrimNotification, state refStatusState, color messageColor, message string) error {
+func compareNotification(n *standardGrimNotification, state refStatusState, color string, message string) error {
 	if n.GithubRefStatus() != state {
 		return fmt.Errorf("Github: %v", n)
 	}
