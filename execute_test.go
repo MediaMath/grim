@@ -85,13 +85,32 @@ func TestRunEchoWithChan(t *testing.T) {
 	})
 }
 
-func TestGetExitCode(t *testing.T) {
+func TestKillProcessWithOneChildOnTimeout(t *testing.T) {
+
 	timeoutTime := time.Duration(1) * time.Second
 
-	//This command creates a parent and child process
-	//so that we can test killing both parent and child
-	//processes
 	cmd := exec.Command("/bin/sh", "-c", "watch date > date.txt")
+
+	err := cmd.Start()
+	if err != nil {
+		t.Error("can not start the command.")
+	}
+
+	exCode, err := killProcessOnTimeout(cmd, timeoutTime)
+	if err != nil {
+		t.Errorf("process still running, Error: %v", err)
+	}
+
+	if exCode != 1 {
+		t.Error("process should return 1 as its exit code")
+	}
+}
+
+func TestKillProcessWithChildAndGrandChildOnTimeout(t *testing.T) {
+
+	timeoutTime := time.Duration(1) * time.Second
+
+	cmd := exec.Command("/bin/sh", "-c", "(sleep 1000) & ((sleep 1000)& sleep 1000)& wait")
 
 	err := cmd.Start()
 	if err != nil {

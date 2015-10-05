@@ -106,7 +106,6 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 			return 0, fmt.Errorf("Failed to get process group id: %v", cmd.Process.Pid, err)
 		}
 		<-done
-		//exitCode = -23
 	case err := <-done:
 		if err != nil {
 			exitCode, err = getExitCode(err)
