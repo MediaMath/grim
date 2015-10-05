@@ -4,3 +4,6 @@
 
 - name: create the build server user (in shadow for supervisord)
   user: name={{ builder }} shell=/bin/bash home={{ builder_home }} append=yes groups=shadow
+
+- name: make sources directory for builder user 
+  file: state=directory path={{ builder_home }}/.sources
