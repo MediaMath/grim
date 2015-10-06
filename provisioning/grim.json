@@ -8,7 +8,7 @@
             "secret_key": "{{user `aws_secret_key`}}",
             "source_ami": "{{user `source_ami`}}",
             "ssh_username": "admin",
-            "type": "amazon-ebs",
+            "type": "amazon-ebs"
         }
     ],
     "post-processors": [
