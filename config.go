@@ -149,6 +149,10 @@ func getEffectiveGlobalConfig(configRoot string) (ec *effectiveConfig, err error
 				errorTemplate:     gc.errorTemplate(),
 				successTemplate:   gc.successTemplate(),
 				failureTemplate:   gc.failureTemplate(),
+				successColor:      gc.successColor(),
+				pendingColor:      gc.pendingColor(),
+				errorColor:        gc.errorColor(),
+				failureColor:      gc.failureColor(),
 				timeout:           10,
 				usernameWhitelist: []string{},
 			}
@@ -183,6 +187,10 @@ func getEffectiveConfig(configRoot, owner, repo string) (ec *effectiveConfig, er
 				errorTemplate:     lc.errorTemplate(),
 				successTemplate:   lc.successTemplate(),
 				failureTemplate:   lc.failureTemplate(),
+				successColor:      lc.successColor(),
+				pendingColor:      lc.pendingColor(),
+				errorColor:        lc.errorColor(),
+				failureColor:      lc.failureColor(),
 				timeout:           int(lc.timeout().Seconds()),
 				usernameWhitelist: lc.usernameWhitelist(),
 			}

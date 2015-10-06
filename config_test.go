@@ -350,6 +350,22 @@ func TestLoadGlobalConfig(t *testing.T) {
 	if ec.grimServerID != "def-serverid" {
 		t.Errorf("Didn't match:\n%v", ec)
 	}
+
+	if ec.successColor != "green" {
+		t.Errorf("Didn't match: \n%v", ec)
+	}
+
+	if ec.failureColor != "red" {
+		t.Errorf("Didn't match: \n%v", ec)
+	}
+
+	if ec.errorColor != "gray" {
+		t.Errorf("Didn't match: \n%v", ec)
+	}
+
+	if ec.pendingColor != "yellow" {
+		t.Errorf("Didn't match: \n%v", ec)
+	}
 }
 
 func TestLoadRepoConfig(t *testing.T) {
@@ -361,6 +377,23 @@ func TestLoadRepoConfig(t *testing.T) {
 	if ec.pathToCloneIn != "go/src/github.com/MediaMath/foo" {
 		t.Errorf("Didn't match:\n%v", ec)
 	}
+
+	if ec.successColor != "green" {
+		t.Errorf("Didn't match: \n%v", ec)
+	}
+
+	if ec.failureColor != "red" {
+		t.Errorf("Didn't match: \n%v", ec)
+	}
+
+	if ec.errorColor != "gray" {
+		t.Errorf("Didn't match: \n%v", ec)
+	}
+
+	if ec.pendingColor != "yellow" {
+		t.Errorf("Didn't match: \n%v", ec)
+	}
+
 }
 
 func TestLoadConfig(t *testing.T) {
