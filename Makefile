@@ -33,7 +33,7 @@ test:
 	go test $(TEST_VERBOSITY) ./...
 
 part: 
-	go get -a github.com/MediaMath/part
+	go get github.com/MediaMath/part
 
 publish: part tmp/grimd-$(VERSION).zip
 	part -verbose -credentials=$(HOME)/.ivy2/credentials/$(ARTIFACTORY_HOST) -h="https://$(ARTIFACTORY_HOST)/artifactory" -r=$(REPOSITORY) -g=com.mediamath.grim -a=grimd -v=$(VERSION) tmp/grimd-$(VERSION).zip
