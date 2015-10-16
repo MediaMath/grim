@@ -2,7 +2,7 @@
 
 set -eu
 
-. /opt/golang/go1.4.2/bin/go_env.sh
+. /opt/golang/go1.5.1/bin/go_env.sh
 
 export GOPATH="$(pwd)/go"
 export PATH="$GOPATH/bin:$PATH"
