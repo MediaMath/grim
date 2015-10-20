@@ -85,22 +85,28 @@ func TestRunEchoWithChan(t *testing.T) {
 	})
 }
 
-func TestGetExitCode(t *testing.T) {
-	timeoutTime := time.Duration(1) * time.Second
+func TestKillProcessWithChildAndGrandChildOnTimeout(t *testing.T) {
 
-	cmd := exec.Command("grep", "go")
+	timeoutTime := time.Duration(5) * time.Second
+
+	cmd := exec.Command("/bin/sh", "-c", "( sleep 2 )& (( sleep 2 )& sleep 2 )& wait")
 
 	err := cmd.Start()
 	if err != nil {
 		t.Error("can not start the command.")
 	}
 
-	exCode, err := killProcessOnTimeout(cmd, timeoutTime)
+	err = cmd.Wait()
 	if err != nil {
-		t.Error("process still running")
+		t.Errorf("command finished with error: %v", err)
 	}
 
-	if exCode != 1 {
-		t.Error("process should return 1 as its exit code")
+	exCode, err := killProcessOnTimeout(cmd, timeoutTime)
+	if err != nil {
+		t.Errorf("process still running, Error: %v", err)
+	}
+
+	if exCode != 0 {
+		t.Error("process should return 0 as its exit code")
 	}
 }
