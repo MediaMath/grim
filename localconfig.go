@@ -13,32 +13,7 @@ import (
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-type acceptsLocalConfig interface {
-	configRoot() string
-	owner() string
-	repo() string
-	setLocalConfig(localConfig)
-	setError(error)
-}
-
 var errNilLocalConfig = fmt.Errorf("local config was nil")
-
-func localConfigReaderProcess(reqs chan acceptsLocalConfig) {
-	for req := range reqs {
-		localConfigReader(req)
-	}
-}
-
-func localConfigReader(req acceptsLocalConfig) {
-	lc, err := readLocalConfig(req.configRoot(), req.owner(), req.repo())
-	if err != nil {
-		req.setError(err)
-	} else if lc.local == nil {
-		req.setError(errNilLocalConfig)
-	} else {
-		req.setLocalConfig(lc)
-	}
-}
 
 func readLocalConfig(configRoot, owner, repo string) (lc localConfig, err error) {
 	var bs []byte
@@ -179,6 +154,25 @@ func (lc localConfig) usernameWhitelist() []string {
 		wl = append(wl, entryStr)
 	}
 	return wl
+}
+
+func (lc localConfig) usernameCanBuild(username string) (allowed bool) {
+	whitelist := lc.usernameWhitelist()
+
+	wlLen := len(whitelist)
+
+	if whitelist == nil || wlLen == 0 {
+		allowed = true
+	} else {
+		for i := 0; i < wlLen; i++ {
+			if whitelist[i] == username {
+				allowed = true
+				break
+			}
+		}
+	}
+
+	return
 }
 
 func defaultTopicName(owner, repo string) *string {

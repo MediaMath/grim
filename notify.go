@@ -13,48 +13,48 @@ import (
 
 type grimNotification interface {
 	GithubRefStatus() refStatusState
-	HipchatNotification(context *grimNotificationContext, config *effectiveConfig) (string, string, error)
+	HipchatNotification(context *grimNotificationContext, config localConfig) (string, string, error)
 }
 
 type standardGrimNotification struct {
 	githubState     refStatusState
-	getHipchatColor func(*effectiveConfig) string
-	getTemplate     func(*effectiveConfig) string
+	getHipchatColor func(localConfig) string
+	getTemplate     func(localConfig) string
 }
 
 //GrimPending is the notification used for pending builds.
 var GrimPending = &standardGrimNotification{
 	RSPending,
-	func(c *effectiveConfig) string { return c.pendingColor },
-	func(c *effectiveConfig) string { return c.pendingTemplate },
+	func(c localConfig) string { return c.pendingColor() },
+	func(c localConfig) string { return c.pendingTemplate() },
 }
 
 //GrimError is the notification used for builds that cannot be run correctly.
 var GrimError = &standardGrimNotification{
 	RSError,
-	func(c *effectiveConfig) string { return c.errorColor },
-	func(c *effectiveConfig) string { return c.errorTemplate },
+	func(c localConfig) string { return c.errorColor() },
+	func(c localConfig) string { return c.errorTemplate() },
 }
 
 //GrimFailure is the notification used when builds fail.
 var GrimFailure = &standardGrimNotification{
 	RSFailure,
-	func(c *effectiveConfig) string { return c.failureColor },
-	func(c *effectiveConfig) string { return c.failureTemplate },
+	func(c localConfig) string { return c.failureColor() },
+	func(c localConfig) string { return c.failureTemplate() },
 }
 
 //GrimSuccess is the notification used when builds succeed.
 var GrimSuccess = &standardGrimNotification{
 	RSSuccess,
-	func(c *effectiveConfig) string { return c.successColor },
-	func(c *effectiveConfig) string { return c.successTemplate },
+	func(c localConfig) string { return c.successColor() },
+	func(c localConfig) string { return c.successTemplate() },
 }
 
 func (s *standardGrimNotification) GithubRefStatus() refStatusState {
 	return s.githubState
 }
 
-func (s *standardGrimNotification) HipchatNotification(context *grimNotificationContext, config *effectiveConfig) (string, string, error) {
+func (s *standardGrimNotification) HipchatNotification(context *grimNotificationContext, config localConfig) (string, string, error) {
 	message, err := context.render(s.getTemplate(config))
 	return message, s.getHipchatColor(config), err
 }
@@ -87,24 +87,24 @@ func buildContext(hook hookEvent, ws, logDir string) *grimNotificationContext {
 	return &grimNotificationContext{hook.Owner, hook.Repo, hook.EventName, hook.Target, hook.UserName, ws, logDir}
 }
 
-func notify(config *effectiveConfig, hook hookEvent, ws, logDir string, notification grimNotification, logger *log.Logger) error {
+func notify(config localConfig, hook hookEvent, ws, logDir string, notification grimNotification, logger *log.Logger) error {
 	if hook.EventName != "push" && hook.EventName != "pull_request" {
 		return nil
 	}
 
-	ghErr := setRefStatus(config.gitHubToken, hook.Owner, hook.Repo, hook.StatusRef, notification.GithubRefStatus(), "", "")
+	ghErr := setRefStatus(config.gitHubToken(), hook.Owner, hook.Repo, hook.StatusRef, notification.GithubRefStatus(), "", "")
 
 	context := buildContext(hook, ws, logDir)
 	message, color, err := notification.HipchatNotification(context, config)
 	logger.Print(message)
 
-	if config.hipChatToken != "" && config.hipChatRoom != "" {
+	if config.hipChatToken() != "" && config.hipChatRoom() != "" {
 		if err != nil {
 			logger.Printf("Hipchat: Error while rendering message: %v", err)
 			return err
 		}
 
-		err = sendMessageToRoom(config.hipChatToken, config.hipChatRoom, config.grimServerID, message, color)
+		err = sendMessageToRoom(config.hipChatToken(), config.hipChatRoom(), config.grimServerID(), message, color)
 		if err != nil {
 			logger.Printf("Hipchat: Error while sending message to room: %v", err)
 			return err
