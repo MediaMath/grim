@@ -44,6 +44,7 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 	cmd := exec.Command(execPath, args...)
 	cmd.Dir = workingDir
 	cmd.Env = env
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	var startErr error
 
@@ -94,9 +95,14 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 		done <- cmd.Wait()
 	}()
 
+	processGroupID, err := syscall.Getpgid(cmd.Process.Pid)
+	if err != nil {
+		return 0, err
+	}
+
 	select {
 	case <-time.After(timeout):
-		if err := cmd.Process.Kill(); err != nil {
+		if err := syscall.Kill(-processGroupID, syscall.SIGKILL); err != nil {
 			return 0, fmt.Errorf("Failed to kill process: %v", err)
 		}
 		<-done
@@ -109,6 +115,7 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 			}
 		}
 	}
+
 	return exitCode, nil
 }
 
