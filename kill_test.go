@@ -14,8 +14,8 @@ import (
 func TestKill(t *testing.T) {
 	timeout := 100 * time.Millisecond
 	_, err := execute([]string{}, ".", "./test_data/tobekilled.sh", timeout)
-	if err != nil {
-		t.Fatalf("execute err: %v", err)
+	if err != errTimeout {
+		t.Fatalf("expected timeout err but got: %v", err)
 	}
 
 	time.After(2 * timeout)

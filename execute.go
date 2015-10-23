@@ -8,11 +8,14 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"syscall"
 	"time"
 )
+
+var errTimeout = fmt.Errorf("build timed out")
 
 type eitherStringOrError struct {
 	str string
@@ -86,8 +89,7 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 }
 
 // kills a cmd process based on config timeout settings
-func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
-	var exitCode int
+func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (exitCode int, err error) {
 	// 1 deep channel for done
 	done := make(chan error, 1)
 
@@ -100,13 +102,15 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 		return 0, err
 	}
 
+	grimProcessGroupID, err := syscall.Getpgid(os.Getpid())
+	if err != nil {
+		return 0, err
+	}
+
 	select {
 	case <-time.After(timeout):
-		if err := syscall.Kill(-processGroupID, syscall.SIGKILL); err != nil {
-			return 0, fmt.Errorf("Failed to kill process: %v", err)
-		}
-		<-done
 		exitCode = -23
+		err = errTimeout
 	case err := <-done:
 		if err != nil {
 			exitCode, err = getExitCode(err)
@@ -116,7 +120,11 @@ func killProcessOnTimeout(cmd *exec.Cmd, timeout time.Duration) (int, error) {
 		}
 	}
 
-	return exitCode, nil
+	if grimProcessGroupID != processGroupID {
+		syscall.Kill(-processGroupID, syscall.SIGKILL)
+	}
+
+	return
 }
 
 // gets the exit code from error
