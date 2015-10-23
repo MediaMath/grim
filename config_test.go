@@ -342,73 +342,73 @@ func TestValidateEffectiveConfig(t *testing.T) {
 }
 
 func TestLoadGlobalConfig(t *testing.T) {
-	ec, err := getEffectiveGlobalConfig("./test_data/config_test")
+	ec, err := readGlobalConfig("./test_data/config_test")
 	if err != nil {
 		t.Fatalf("|%v|", err)
 	}
 
-	if ec.grimServerID != "def-serverid" {
+	if ec.grimServerID() != "def-serverid" {
 		t.Errorf("Didn't match:\n%v", ec)
 	}
 
-	if ec.successColor != "green" {
+	if ec.successColor() != "green" {
 		t.Errorf("Didn't match: \n%v", ec)
 	}
 
-	if ec.failureColor != "red" {
+	if ec.failureColor() != "red" {
 		t.Errorf("Didn't match: \n%v", ec)
 	}
 
-	if ec.errorColor != "gray" {
+	if ec.errorColor() != "gray" {
 		t.Errorf("Didn't match: \n%v", ec)
 	}
 
-	if ec.pendingColor != "yellow" {
+	if ec.pendingColor() != "yellow" {
 		t.Errorf("Didn't match: \n%v", ec)
 	}
 }
 
 func TestLoadRepoConfig(t *testing.T) {
-	ec, err := getEffectiveConfig("./test_data/config_test", "MediaMath", "foo")
+	ec, err := readLocalConfig("./test_data/config_test", "MediaMath", "foo")
 	if err != nil {
 		t.Fatalf("|%v|", err)
 	}
 
-	if ec.pathToCloneIn != "go/src/github.com/MediaMath/foo" {
+	if ec.pathToCloneIn() != "go/src/github.com/MediaMath/foo" {
 		t.Errorf("Didn't match:\n%v", ec)
 	}
 
-	if ec.successColor != "green" {
+	if ec.successColor() != "green" {
 		t.Errorf("Didn't match: \n%v", ec)
 	}
 
-	if ec.failureColor != "red" {
+	if ec.failureColor() != "red" {
 		t.Errorf("Didn't match: \n%v", ec)
 	}
 
-	if ec.errorColor != "gray" {
+	if ec.errorColor() != "gray" {
 		t.Errorf("Didn't match: \n%v", ec)
 	}
 
-	if ec.pendingColor != "yellow" {
+	if ec.pendingColor() != "yellow" {
 		t.Errorf("Didn't match: \n%v", ec)
 	}
 
 }
 
 func TestLoadConfig(t *testing.T) {
-	ec, err := getEffectiveGlobalConfig("./test_data/config_test")
+	ec, err := readGlobalConfig("./test_data/config_test")
 	if err != nil {
 		t.Fatalf("|%v|", err)
 	}
 
-	if ec.hipChatRoom != "def-hcroom" {
+	if ec.hipChatRoom() != "def-hcroom" {
 		t.Errorf("Didn't load correctly")
 	}
 }
 
 func TestBHandMMCanBuildByDefault(t *testing.T) {
-	config, err := getEffectiveConfig("./test_data/config_test", "MediaMath", "foo")
+	config, err := readLocalConfig("./test_data/config_test", "MediaMath", "foo")
 	if err != nil {
 		t.Fatalf("|%v|", err)
 	}
@@ -419,7 +419,7 @@ func TestBHandMMCanBuildByDefault(t *testing.T) {
 }
 
 func TestBHandMMCanBuild(t *testing.T) {
-	config, err := getEffectiveConfig("./test_data/config_test", "MediaMath", "bar")
+	config, err := readLocalConfig("./test_data/config_test", "MediaMath", "bar")
 	if err != nil {
 		t.Fatalf("|%v|", err)
 	}
@@ -430,7 +430,7 @@ func TestBHandMMCanBuild(t *testing.T) {
 }
 
 func TestKKlipschCantBuild(t *testing.T) {
-	config, err := getEffectiveConfig("./test_data/config_test", "MediaMath", "bar")
+	config, err := readLocalConfig("./test_data/config_test", "MediaMath", "bar")
 	if err != nil {
 		t.Fatalf("|%v|", err)
 	}

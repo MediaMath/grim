@@ -58,23 +58,23 @@ func TestTimeOutConfig(t *testing.T) {
 	configJS := `{"Timeout":4,"AWSRegion":"empty","AWSKey":"empty","AWSSecret":"empty"}`
 	ioutil.WriteFile(filepath.Join(tempDir, "config.json"), []byte(configJS), 0644)
 
-	config, err := getEffectiveGlobalConfig(tempDir)
+	config, err := readGlobalConfig(tempDir)
 	if err != nil {
 		t.Errorf("|%v|", err)
 	}
-	config.resultRoot = tempDir
-	if config.timeout == int(defaultTimeout.Seconds()) {
+
+	if config.timeout() == time.Duration(defaultTimeout.Seconds())*time.Second {
 		t.Errorf("Failed to use non default timeout time")
 	}
 
-	err = doWaitAction(config, testOwner, testRepo, 2)
+	err = doWaitAction(localConfig{global: globalConfig{"ResultRoot": tempDir}}, testOwner, testRepo, 2)
 	if err != nil {
-		t.Errorf("Failed to not timeout")
+		t.Errorf("Failed to not timeout: %v", err)
 	}
 }
 
-func doWaitAction(config *effectiveConfig, owner, repo string, wait int) error {
-	return onHookBuild("not-used", config, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
+func doWaitAction(config localConfig, owner, repo string, wait int) error {
+	return onHookBuild("not-used", config, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c localConfig, h hookEvent, s string) (*executeResult, string, error) {
 		time.Sleep(time.Duration(wait) * time.Second)
 		return &executeResult{}, "", nil
 	})
@@ -176,7 +176,7 @@ func TestHookGetsLogged(t *testing.T) {
 
 	hook := hookEvent{Owner: testOwner, Repo: testRepo, StatusRef: "fooooooooooooooooooo"}
 
-	err := onHookBuild("not-used", &effectiveConfig{resultRoot: tempDir}, hook, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
+	err := onHookBuild("not-used", localConfig{global: globalConfig{"ResultRoot": tempDir}}, hook, nil, func(r string, resultPath string, c localConfig, h hookEvent, s string) (*executeResult, string, error) {
 		return &executeResult{ExitCode: 0}, "", nil
 	})
 
@@ -239,7 +239,7 @@ func XOR(a, b bool) bool {
 }
 
 func doNothingAction(tempDir, owner, repo string, exitCode int, returnedErr error) error {
-	return onHookBuild("not-used", &effectiveConfig{resultRoot: tempDir}, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c *effectiveConfig, h hookEvent, s string) (*executeResult, string, error) {
+	return onHookBuild("not-used", localConfig{global: globalConfig{"ResultRoot": tempDir}}, hookEvent{Owner: owner, Repo: repo}, nil, func(r string, resultPath string, c localConfig, h hookEvent, s string) (*executeResult, string, error) {
 		return &executeResult{ExitCode: exitCode}, "", returnedErr
 	})
 }

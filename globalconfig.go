@@ -12,30 +12,7 @@ import (
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-type acceptsGlobalConfig interface {
-	configRoot() string
-	setGlobalConfig(globalConfig)
-	setError(error)
-}
-
 var errNilGlobalConfig = fmt.Errorf("global config was nil")
-
-func globalConfigReaderProcess(reqs chan acceptsGlobalConfig) {
-	for req := range reqs {
-		globalConfigReader(req)
-	}
-}
-
-func globalConfigReader(req acceptsGlobalConfig) {
-	gc, err := readGlobalConfig(req.configRoot())
-	if err != nil {
-		req.setError(err)
-	} else if gc == nil {
-		req.setError(errNilGlobalConfig)
-	} else {
-		req.setGlobalConfig(gc)
-	}
-}
 
 func readGlobalConfig(configRoot string) (gc globalConfig, err error) {
 	gc = make(globalConfig)
@@ -137,6 +114,22 @@ func (gc globalConfig) grimServerID() string {
 
 func (gc globalConfig) rawGrimServerID() string {
 	return readStringWithDefaults(gc, "GrimServerID", gc.grimQueueName(), defaultGrimQueueName)
+}
+
+func (gc globalConfig) grimServerIDSource() string {
+	if _, ok := gc["GrimServerID"]; ok {
+		return "GrimServerID"
+	}
+
+	if _, ok := gc["GrimQueueName"]; ok {
+		return "GrimQueueName"
+	}
+
+	return ""
+}
+
+func (gc globalConfig) grimServerIDWasTruncated() bool {
+	return gc.grimServerID() != gc.rawGrimServerID()
 }
 
 func (gc globalConfig) pendingTemplate() string {

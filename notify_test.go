@@ -21,11 +21,11 @@ var testContext = &grimNotificationContext{
 	LogDir:    "once/again/where/it/rains",
 }
 
-var testConfig = &effectiveConfig{
-	pendingTemplate: "pending {{.Owner}}",
-	errorTemplate:   "error {{.Repo}}",
-	failureTemplate: "failure {{.Target}}",
-	successTemplate: "success {{.UserName}}"}
+var testConfig = localConfig{local: configMap{
+	"PendingTemplate": "pending {{.Owner}}",
+	"ErrorTemplate":   "error {{.Repo}}",
+	"FailureTemplate": "failure {{.Target}}",
+	"SuccessTemplate": "success {{.UserName}}"}}
 
 var testHook = hookEvent{
 	Owner:     "MediaMath",
@@ -53,11 +53,11 @@ func TestLoggingHipChatErrorCreatingMessage(t *testing.T) {
 	var buf bytes.Buffer
 	logger := log.New(&buf, "", log.Lshortfile)
 
-	testConfigWithHC := &effectiveConfig{
-		pendingTemplate: "pending {{.NOPE}}",
-		hipChatToken:    "NOT_EMPTY",
-		hipChatRoom:     "NON_EMPTY",
-	}
+	testConfigWithHC := localConfig{local: configMap{
+		"PendingTemplate": "pending {{.NOPE}}",
+		"HipChatToken":    "NOT_EMPTY",
+		"HipChatRoom":     "NON_EMPTY",
+	}}
 
 	notify(testConfigWithHC, testHook, "", "", GrimPending, logger)
 	message := fmt.Sprintf("%v", &buf)
@@ -71,11 +71,11 @@ func TestLoggingHipChatErrorSendingMessage(t *testing.T) {
 	var buf bytes.Buffer
 	logger := log.New(&buf, "", log.Lshortfile)
 
-	testConfigWithHC := &effectiveConfig{
-		pendingTemplate: "pending {{.Owner}}",
-		hipChatToken:    "NOT_EMPTY",
-		hipChatRoom:     "NON_EMPTY",
-	}
+	testConfigWithHC := localConfig{local: configMap{
+		"PendingTemplate": "pending {{.Owner}}",
+		"HipChatToken":    "NOT_EMPTY",
+		"HipChatRoom":     "NON_EMPTY",
+	}}
 
 	notify(testConfigWithHC, testHook, "", "", GrimPending, logger)
 	message := fmt.Sprintf("%v", &buf)
@@ -93,11 +93,11 @@ func TestLogDirForBasename(t *testing.T) {
 	var buf bytes.Buffer
 	logger := log.New(&buf, "", log.Lshortfile)
 
-	testConfigWithHC := &effectiveConfig{
-		errorTemplate: "error {{.LogDir}}",
-		hipChatToken:  "NOT_EMPTY",
-		hipChatRoom:   "NON_EMPTY",
-	}
+	testConfigWithHC := localConfig{local: configMap{
+		"ErrorTemplate": "error {{.LogDir}}",
+		"HipChatToken":  "NOT_EMPTY",
+		"HipChatRoom":   "NON_EMPTY",
+	}}
 
 	notify(testConfigWithHC, testHook, "", "temp/MediaMath/grim/123123", GrimError, logger)
 	message := fmt.Sprintf("%v", &buf)

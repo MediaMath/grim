@@ -31,16 +31,16 @@ func (i *Instance) SetConfigRoot(path string) {
 func (i *Instance) PrepareGrimQueue(logger *log.Logger) error {
 	configRoot := getEffectiveConfigRoot(i.configRoot)
 
-	config, err := getEffectiveGlobalConfig(configRoot)
+	config, err := readGlobalConfig(configRoot)
 	if err != nil {
 		return fatalGrimErrorf("error while reading config: %v", err)
 	}
 
-	if config.origServerID != config.grimServerID {
-		logger.Printf(buildTruncatedMessage(config.truncateID))
+	if config.grimServerIDWasTruncated() {
+		logger.Printf(buildTruncatedMessage(config.grimServerIDSource()))
 	}
 
-	queue, err := prepareSQSQueue(config.awsKey, config.awsSecret, config.awsRegion, config.grimQueueName)
+	queue, err := prepareSQSQueue(config.awsKey(), config.awsSecret(), config.awsRegion(), config.grimQueueName())
 	if err != nil {
 		return fatalGrimErrorf("error preparing queue: %v", err)
 	}
@@ -59,7 +59,7 @@ func (i *Instance) PrepareRepos() error {
 
 	configRoot := getEffectiveConfigRoot(i.configRoot)
 
-	config, err := getEffectiveGlobalConfig(configRoot)
+	config, err := readGlobalConfig(configRoot)
 	if err != nil {
 		return fatalGrimErrorf("error while reading config: %v", err)
 	}
@@ -68,22 +68,22 @@ func (i *Instance) PrepareRepos() error {
 
 	var topicARNs []string
 	for _, repo := range repos {
-		localConfig, err := getEffectiveConfig(configRoot, repo.owner, repo.name)
+		localConfig, err := readLocalConfig(configRoot, repo.owner, repo.name)
 		if err != nil {
 			return fatalGrimErrorf("Error with config for %s/%s. %v", repo.owner, repo.name, err)
 		}
 
-		snsTopicARN, err := prepareSNSTopic(config.awsKey, config.awsSecret, config.awsRegion, localConfig.snsTopicName)
+		snsTopicARN, err := prepareSNSTopic(config.awsKey(), config.awsSecret(), config.awsRegion(), localConfig.snsTopicName())
 		if err != nil {
 			return fatalGrimErrorf("error creating SNS Topic %s for %s/%s topic: %v", localConfig.snsTopicName, repo.owner, repo.name, err)
 		}
 
-		err = prepareSubscription(config.awsKey, config.awsSecret, config.awsRegion, snsTopicARN, i.queue.ARN)
+		err = prepareSubscription(config.awsKey(), config.awsSecret(), config.awsRegion(), snsTopicARN, i.queue.ARN)
 		if err != nil {
 			return fatalGrimErrorf("error subscribing Grim queue %q to SNS topic %q: %v", i.queue.ARN, snsTopicARN, err)
 		}
 
-		err = prepareAmazonSNSService(localConfig.gitHubToken, repo.owner, repo.name, snsTopicARN, config.awsKey, config.awsSecret, config.awsRegion)
+		err = prepareAmazonSNSService(localConfig.gitHubToken(), repo.owner, repo.name, snsTopicARN, config.awsKey(), config.awsSecret(), config.awsRegion())
 		if err != nil {
 			return fatalGrimErrorf("error creating configuring GitHub AmazonSNS service: %v", err)
 		}
@@ -91,7 +91,7 @@ func (i *Instance) PrepareRepos() error {
 		topicARNs = append(topicARNs, snsTopicARN)
 	}
 
-	err = setPolicy(config.awsKey, config.awsSecret, config.awsRegion, i.queue.ARN, i.queue.URL, topicARNs)
+	err = setPolicy(config.awsKey(), config.awsSecret(), config.awsRegion(), i.queue.ARN, i.queue.URL, topicARNs)
 	if err != nil {
 		return fatalGrimErrorf("error setting policy for Grim queue %q with topics %v: %v", i.queue.ARN, topicARNs, err)
 	}
@@ -107,12 +107,12 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 
 	configRoot := getEffectiveConfigRoot(i.configRoot)
 
-	globalConfig, err := getEffectiveGlobalConfig(configRoot)
+	globalConfig, err := readGlobalConfig(configRoot)
 	if err != nil {
 		return grimErrorf("error while reading config: %v", err)
 	}
 
-	message, err := getNextMessage(globalConfig.awsKey, globalConfig.awsSecret, globalConfig.awsRegion, i.queue.URL)
+	message, err := getNextMessage(globalConfig.awsKey(), globalConfig.awsSecret(), globalConfig.awsRegion(), i.queue.URL)
 	if err != nil {
 		return grimErrorf("error retrieving message from Grim queue %q: %v", i.queue.URL, err)
 	}
@@ -130,7 +130,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 		logger.Printf("hook built: %s\n", hook.Describe())
 
 		if hook.EventName == "pull_request" {
-			sha, err := pollForMergeCommitSha(globalConfig.gitHubToken, hook.Owner, hook.Repo, hook.PrNumber)
+			sha, err := pollForMergeCommitSha(globalConfig.gitHubToken(), hook.Owner, hook.Repo, hook.PrNumber)
 			if err != nil {
 				return grimErrorf("error getting merge commit sha: %v", err)
 			} else if sha == "" {
@@ -139,7 +139,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 			hook.Ref = sha
 		}
 
-		localConfig, err := getEffectiveConfig(configRoot, hook.Owner, hook.Repo)
+		localConfig, err := readLocalConfig(configRoot, hook.Owner, hook.Repo)
 		if err != nil {
 			return grimErrorf("error while reading config: %v", err)
 		}
@@ -157,7 +157,7 @@ func (i *Instance) BuildNextInGrimQueue(logger *log.Logger) error {
 func (i *Instance) BuildRef(owner, repo, ref string, logger *log.Logger) error {
 	configRoot := getEffectiveConfigRoot(i.configRoot)
 
-	config, err := getEffectiveConfig(configRoot, owner, repo)
+	config, err := readLocalConfig(configRoot, owner, repo)
 	if err != nil {
 		return fatalGrimErrorf("error while reading config: %v", err)
 	}
@@ -169,15 +169,15 @@ func (i *Instance) BuildRef(owner, repo, ref string, logger *log.Logger) error {
 	}, logger)
 }
 
-func buildOnHook(configRoot string, resultPath string, config *effectiveConfig, hook hookEvent, basename string) (*executeResult, string, error) {
-	return build(config.gitHubToken, configRoot, config.workspaceRoot, resultPath, config.pathToCloneIn, hook.Owner, hook.Repo, hook.Ref, hook.env(), basename, config.BuildTimeout())
+func buildOnHook(configRoot string, resultPath string, config localConfig, hook hookEvent, basename string) (*executeResult, string, error) {
+	return build(config.gitHubToken(), configRoot, config.workspaceRoot(), resultPath, config.pathToCloneIn(), hook.Owner, hook.Repo, hook.Ref, hook.env(), basename, config.timeout())
 }
 
-func buildForHook(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger) error {
+func buildForHook(configRoot string, config localConfig, hook hookEvent, logger *log.Logger) error {
 	return onHookBuild(configRoot, config, hook, logger, buildOnHook)
 }
 
-type hookAction func(string, string, *effectiveConfig, hookEvent, string) (*executeResult, string, error)
+type hookAction func(string, string, localConfig, hookEvent, string) (*executeResult, string, error)
 
 func writeHookEvent(resultPath string, hook hookEvent) error {
 	hookFile := filepath.Join(resultPath, "hook.json")
@@ -190,9 +190,9 @@ func writeHookEvent(resultPath string, hook hookEvent) error {
 	return nil
 }
 
-func onHookBuild(configRoot string, config *effectiveConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
+func onHookBuild(configRoot string, config localConfig, hook hookEvent, logger *log.Logger, action hookAction) error {
 	basename := getTimeStamp()
-	resultPath, err := makeTree(config.resultRoot, hook.Owner, hook.Repo, basename)
+	resultPath, err := makeTree(config.resultRoot(), hook.Owner, hook.Repo, basename)
 	if err != nil {
 		return fatalGrimErrorf("error creating result path: %v", err)
 	}
