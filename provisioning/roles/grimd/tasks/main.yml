@@ -18,18 +18,10 @@
 - name: create config directory
   file: state=directory path=/etc/grim owner={{ builder }} group={{ builder_group }} mode=0770
 
-- name: make sure supervisor is installed 
-  apt: pkg=supervisor
+- name: install grimd systemd service unit
+  template: src=grimd.service.j2 dest=/etc/systemd/system/grimd.service
   sudo: yes
 
-- name: make sure supervisor is running 
-  service: name=supervisor state=running enabled=true
-  sudo: yes
-
-- name: install grimd supervisor config 
-  template: src=grimd-supervisord.conf.j2 dest=/etc/supervisor/conf.d/grimd.conf
-  sudo: yes
-
-- name: make sure grimd is installed in supervisor 
-  supervisorctl: name=grimd state=present
+- name: make sure grimd is enabled
+  service: name=grimd enabled=yes
   sudo: yes

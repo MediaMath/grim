@@ -30,6 +30,17 @@
             "type": "file"
         },
         {
+            "environment_vars": [
+                "DEBIAN_FRONTEND=noninteractive"
+            ],
+            "inline": [
+                "sudo apt-get update",
+                "sudo apt-get install -y python-setuptools python-dev python-pip build-essential",
+                "sudo pip install ansible"
+            ],
+            "type": "shell"
+        },
+        {
             "command": "ansible-playbook --extra-vars \"artifactory_user={{user `artifactory_user` }} artifactory_password={{user `artifactory_password`}}\"",
             "playbook_file": "./local.yml",
             "type": "ansible-local"
@@ -39,9 +50,9 @@
         "name": "{{user `organization`}}/{{user `box_basename`}}"
     },
     "variables": {
-	"artifactory_user": "{{env `ARTIFACTORY_USER`}}",
-	"artifactory_password": "{{env `ARTIFACTORY_PASSWORD`}}",
-	"source_ami": "ami-6f4e330a",
+        "artifactory_user": "{{env `ARTIFACTORY_USER`}}",
+        "artifactory_password": "{{env `ARTIFACTORY_PASSWORD`}}",
+        "source_ami": "ami-896714e3",
         "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
         "aws_region": "us-east-1",
         "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",

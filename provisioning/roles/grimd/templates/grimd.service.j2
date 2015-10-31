@@ -1,0 +1,9 @@
+[Unit]
+Description=Grimd
+
+[Service]
+Type=simple
+ExecStart={{ grimd_install_location }}/grimd
+
+[Install]
+WantedBy=multi-user.target
