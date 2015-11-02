@@ -10,6 +10,10 @@ export PATH="$GOPATH/bin:$PATH"
 
 cd "./$CLONE_PATH"
 
+go get github.com/bhand-mm/aws-sdk-go
+
+mv "$GOPATH/src/github.com/bhand-mm" "$GOPATH/src/github.com/aws"
+
 go get ./...
 go get github.com/golang/lint/golint
 
