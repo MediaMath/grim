@@ -4,6 +4,7 @@ Description=Grimd
 [Service]
 Type=simple
 ExecStart={{ grimd_install_location }}/grimd
+User={{ builder }}
 
 [Install]
 WantedBy=multi-user.target
