@@ -25,22 +25,20 @@
     ],
     "provisioners": [
         {
-            "destination": "/tmp/packer-provisioner-ansible-local",
-            "source": "./roles",
-            "type": "file"
+            "type": "file",
+            "source": "./grimd.zip",
+            "destination": "/tmp/grimd.zip"
         },
         {
+            "type": "file",
+            "source": "./grimd_install.sh",
+            "destination": "/tmp/grimd_install.sh"
+        },
+        {
+            "type": "shell",
             "inline": [
-                "sudo apt-get update",
-                "sudo apt-get install -y python-setuptools python-dev python-pip build-essential",
-                "sudo pip install ansible"
-            ],
-            "type": "shell"
-        },
-        {
-            "command": "ansible-playbook --extra-vars \"artifactory_user={{user `artifactory_user` }} artifactory_password={{user `artifactory_password`}}\"",
-            "playbook_file": "./local.yml",
-            "type": "ansible-local"
+                "sudo bash /tmp/grimd_install.sh"
+            ]
         }
     ],
     "push": {
