@@ -16,6 +16,9 @@ mkdir -p /var/log/grim # logs
 mkdir -p /var/tmp/grim # build folders
 mkdir -p /etc/grim # config dir
 
+chown grim:grim /var/log/grim
+chown grim:grim /var/tmp/grim
+
 ### install grim ###
 unzip -d/opt/grimd /tmp/grimd.zip
 
