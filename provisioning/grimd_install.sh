@@ -16,6 +16,7 @@ mkdir -p /var/log/grim # logs
 mkdir -p /var/tmp/grim # build folders
 mkdir -p /etc/grim # config dir
 
+### grim needs to own these directories ###
 chown grim:grim /var/log/grim
 chown grim:grim /var/tmp/grim
 
