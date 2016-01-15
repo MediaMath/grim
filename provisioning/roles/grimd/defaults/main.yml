@@ -1,5 +1,0 @@
-grimd_install_location: /usr/bin
-grimd_repository: libs-release-global
-grimd_version: [RELEASE]
-grimd_download_url: https://artifactory.mediamath.com/artifactory/{{ grimd_repository }}/com/mediamath/grim/grimd/{{ grimd_version }}/grimd-{{ grimd_version }}.zip
-grimd_download_location: /tmp/

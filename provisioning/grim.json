@@ -45,8 +45,6 @@
         "name": "{{user `organization`}}/{{user `box_basename`}}"
     },
     "variables": {
-        "artifactory_user": "{{env `ARTIFACTORY_USER`}}",
-        "artifactory_password": "{{env `ARTIFACTORY_PASSWORD`}}",
         "source_ami": "ami-d6e9b3bc",
         "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
         "aws_region": "us-east-1",

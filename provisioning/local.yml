@@ -1,9 +1,0 @@
----
-- hosts: all 
-  sudo: True
-  vars:
-        builder: grim
-        builder_home: /var/lib/grim
-        builder_group: grim
-  roles:
-    - { role: grimd } 
