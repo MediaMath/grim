@@ -39,7 +39,7 @@ publish: part tmp/grimd-$(VERSION).zip
 	part -verbose -credentials=$(HOME)/.ivy2/credentials/$(ARTIFACTORY_HOST) -h="https://$(ARTIFACTORY_HOST)/artifactory" -r=$(REPOSITORY) -g=com.mediamath.grim -a=grimd -v=$(VERSION) tmp/grimd-$(VERSION).zip
 
 packer: tmp/grimd-$(VERSION).zip 
-	cp tmp/grimd-$(VERSION).zip provisioning/grimgd.zip
+	cp tmp/grimd-$(VERSION).zip provisioning/grimd.zip
 	packer push provisioning/grim.json
 
 cover: tmp
