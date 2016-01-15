@@ -32,3 +32,6 @@ User=grim
 [Install]
 WantedBy=multi-user.target
 End-of-grimd.service
+
+### enable grimd ###
+systemctl enable grimd.service
