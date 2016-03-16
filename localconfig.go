@@ -97,6 +97,10 @@ func (lc localConfig) hipChatToken() string {
 	return readStringWithDefaults(lc.local, "HipChatToken", lc.global.hipChatToken())
 }
 
+func (lc localConfig) hipChatVersion() int {
+	return readIntWithDefaults(lc.local, "HipChatVersion", lc.global.hipChatVersion())
+}
+
 func (lc localConfig) grimServerID() string {
 	return lc.global.grimServerID()
 }
