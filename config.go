@@ -29,6 +29,7 @@ var (
 	defaultColorForError      = colorForError()
 	defaultColorForPending    = colorForPending()
 	defaultTemplateForFailure = templateForFailureandError("Failure during")
+	defaultHipChatVersion     = 1
 )
 
 type configMap map[string]interface{}

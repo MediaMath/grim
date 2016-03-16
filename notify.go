@@ -2,6 +2,7 @@ package grim
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"text/template"
@@ -104,7 +105,15 @@ func notify(config localConfig, hook hookEvent, ws, logDir string, notification 
 			return err
 		}
 
-		err = sendMessageToRoom(config.hipChatToken(), config.hipChatRoom(), config.grimServerID(), message, color)
+		switch config.hipChatVersion() {
+		case 1:
+			err = sendMessageToRoom(config.hipChatToken(), config.hipChatRoom(), config.grimServerID(), message, color)
+		case 2:
+			err = sendMessageToRoom2(config.hipChatToken(), config.hipChatRoom(), config.grimServerID(), message, color)
+		default:
+			err = errors.New("invalid or unsupported hipchat version")
+		}
+
 		if err != nil {
 			logger.Printf("Hipchat: Error while sending message to room: %v", err)
 			return err

@@ -104,6 +104,10 @@ func (gc globalConfig) hipChatToken() string {
 	return readStringWithDefaults(gc, "HipChatToken")
 }
 
+func (gc globalConfig) hipChatVersion() int {
+	return readIntWithDefaults(gc, "HipChatVersion", defaultHipChatVersion)
+}
+
 func (gc globalConfig) grimServerID() string {
 	sid := gc.rawGrimServerID()
 	if len(sid) > 15 {
