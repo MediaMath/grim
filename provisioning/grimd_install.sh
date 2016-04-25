@@ -32,6 +32,8 @@ Description=Grimd
 Type=simple
 ExecStart=/opt/grimd/grimd
 User=grim
+Restart=on-failure
+RestartSec=15
 
 [Install]
 WantedBy=multi-user.target
