@@ -25,33 +25,39 @@
     ],
     "provisioners": [
         {
-            "type": "file",
+            "inline": [
+                "sudo apt-get install -y zip"
+            ],
+            "type": "shell"
+        },
+        {
+            "destination": "/tmp/grimd.zip",
             "source": "./grimd.zip",
-            "destination": "/tmp/grimd.zip"
+            "type": "file"
         },
         {
-            "type": "file",
+            "destination": "/tmp/grimd_install.sh",
             "source": "./grimd_install.sh",
-            "destination": "/tmp/grimd_install.sh"
+            "type": "file"
         },
         {
-            "type": "shell",
             "inline": [
                 "sudo bash /tmp/grimd_install.sh"
-            ]
+            ],
+            "type": "shell"
         }
     ],
     "push": {
         "name": "{{user `organization`}}/{{user `box_basename`}}"
     },
     "variables": {
-        "source_ami": "ami-d6e9b3bc",
         "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
         "aws_region": "us-east-1",
         "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
         "box_basename": "grim",
         "build_timestamp": "{{ timestamp }}",
         "headless": "",
-        "organization": "MediaMath"
+        "organization": "MediaMath",
+        "source_ami": "ami-d6e9b3bc"
     }
 }
