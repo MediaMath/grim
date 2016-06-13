@@ -25,12 +25,6 @@
     ],
     "provisioners": [
         {
-            "inline": [
-                "sudo apt-get install -y zip"
-            ],
-            "type": "shell"
-        },
-        {
             "destination": "/tmp/grimd.zip",
             "source": "./grimd.zip",
             "type": "file"
