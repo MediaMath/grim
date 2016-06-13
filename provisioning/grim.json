@@ -25,6 +25,12 @@
     ],
     "provisioners": [
         {
+            "inline": [
+                "sudo apt-get update"
+            ],
+            "type": "shell"
+        },
+        {
             "destination": "/tmp/grimd.zip",
             "source": "./grimd.zip",
             "type": "file"
