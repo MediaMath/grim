@@ -6,7 +6,7 @@
             "instance_type": "t2.small",
             "region": "{{user `aws_region`}}",
             "secret_key": "{{user `aws_secret_key`}}",
-            "source_ami": "ami-116d857a",
+            "source_ami": "ami-c8bda8a2",
             "ssh_username": "admin",
             "type": "amazon-ebs"
         }
