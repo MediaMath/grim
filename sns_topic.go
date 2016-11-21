@@ -10,15 +10,16 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sns"
 )
 
 func prepareSNSTopic(key, secret, region, topic string) (string, error) {
-	config := getConfig(key, secret, region)
+	session := getSession(key, secret, region)
 
-	topicARN, err := findExistingTopicARN(config, topic)
+	topicARN, err := findExistingTopicARN(session, topic)
 	if err != nil {
-		topicARN, err = createTopic(config, topic)
+		topicARN, err = createTopic(session, topic)
 	}
 
 	if err != nil {
@@ -29,15 +30,15 @@ func prepareSNSTopic(key, secret, region, topic string) (string, error) {
 }
 
 func prepareSubscription(key, secret, region, topicARN, queueARN string) error {
-	config := getConfig(key, secret, region)
+	session := getSession(key, secret, region)
 
-	subARN, err := findSubscription(config, topicARN, queueARN)
+	subARN, err := findSubscription(session, topicARN, queueARN)
 	if err != nil {
 		return err
 	}
 
 	if subARN == "" {
-		subARN, err = createSubscription(config, topicARN, queueARN)
+		subARN, err = createSubscription(session, topicARN, queueARN)
 	}
 
 	if subARN == "" {
@@ -47,8 +48,8 @@ func prepareSubscription(key, secret, region, topicARN, queueARN string) error {
 	return err
 }
 
-func createSubscription(config *aws.Config, topicARN, queueARN string) (string, error) {
-	svc := sns.New(config)
+func createSubscription(session *session.Session, topicARN, queueARN string) (string, error) {
+	svc := sns.New(session)
 
 	params := &sns.SubscribeInput{
 		Protocol: aws.String("sqs"),
@@ -68,8 +69,8 @@ func createSubscription(config *aws.Config, topicARN, queueARN string) (string, 
 	return *resp.SubscriptionArn, nil
 }
 
-func findSubscription(config *aws.Config, topicARN, queueARN string) (string, error) {
-	svc := sns.New(config)
+func findSubscription(session *session.Session, topicARN, queueARN string) (string, error) {
+	svc := sns.New(session)
 
 	params := &sns.ListSubscriptionsByTopicInput{
 		TopicArn: aws.String(topicARN),
@@ -101,8 +102,8 @@ func findSubscription(config *aws.Config, topicARN, queueARN string) (string, er
 	return "", nil
 }
 
-func createTopic(config *aws.Config, topic string) (string, error) {
-	svc := sns.New(config)
+func createTopic(session *session.Session, topic string) (string, error) {
+	svc := sns.New(session)
 
 	params := &sns.CreateTopicInput{
 		Name: aws.String(topic),
@@ -120,7 +121,7 @@ func createTopic(config *aws.Config, topic string) (string, error) {
 	return *resp.TopicArn, nil
 }
 
-func findExistingTopicARN(config *aws.Config, topic string) (string, error) {
+func findExistingTopicARN(session *session.Session, topic string) (string, error) {
 	svc := sns.New(nil)
 
 	params := &sns.ListTopicsInput{

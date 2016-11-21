@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
@@ -40,18 +41,18 @@ type sqsQueue struct {
 }
 
 func prepareSQSQueue(key, secret, region, queue string) (*sqsQueue, error) {
-	config := getConfig(key, secret, region)
+	session := getSession(key, secret, region)
 
-	queueURL, err := getQueueURLByName(config, queue)
+	queueURL, err := getQueueURLByName(session, queue)
 	if err != nil {
-		queueURL, err = createQueue(config, queue)
+		queueURL, err = createQueue(session, queue)
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	queueARN, err := getARNForQueueURL(config, queueURL)
+	queueARN, err := getARNForQueueURL(session, queueURL)
 	if err != nil {
 		return nil, err
 	}
@@ -60,16 +61,16 @@ func prepareSQSQueue(key, secret, region, queue string) (*sqsQueue, error) {
 }
 
 func getNextMessage(key, secret, region, queueURL string) (string, error) {
-	config := getConfig(key, secret, region)
+	session := getSession(key, secret, region)
 
-	message, err := getMessage(config, queueURL)
+	message, err := getMessage(session, queueURL)
 	if err != nil {
 		return "", err
 	} else if message == nil || message.ReceiptHandle == nil {
 		return "", nil
 	}
 
-	err = deleteMessage(config, queueURL, *message.ReceiptHandle)
+	err = deleteMessage(session, queueURL, *message.ReceiptHandle)
 	if err != nil {
 		return "", err
 	}
@@ -82,7 +83,7 @@ func getNextMessage(key, secret, region, queueURL string) (string, error) {
 }
 
 func setPolicy(key, secret, region, queueARN, queueURL string, topicARNs []string) error {
-	svc := sqs.New(getConfig(key, secret, region))
+	svc := sqs.New(getSession(key, secret, region))
 
 	bs, err := json.Marshal(topicARNs)
 	if err != nil {
@@ -108,8 +109,8 @@ func setPolicy(key, secret, region, queueARN, queueURL string, topicARNs []strin
 	return nil
 }
 
-func getQueueURLByName(config *aws.Config, queue string) (string, error) {
-	svc := sqs.New(config)
+func getQueueURLByName(session *session.Session, queue string) (string, error) {
+	svc := sqs.New(session)
 
 	params := &sqs.GetQueueUrlInput{
 		QueueName: aws.String(queue),
@@ -127,8 +128,8 @@ func getQueueURLByName(config *aws.Config, queue string) (string, error) {
 	return *resp.QueueUrl, nil
 }
 
-func getARNForQueueURL(config *aws.Config, queueURL string) (string, error) {
-	svc := sqs.New(config)
+func getARNForQueueURL(session *session.Session, queueURL string) (string, error) {
+	svc := sqs.New(session)
 
 	arnKey := "QueueArn"
 
@@ -158,8 +159,8 @@ func getARNForQueueURL(config *aws.Config, queueURL string) (string, error) {
 	return *arnPtr, nil
 }
 
-func createQueue(config *aws.Config, queue string) (string, error) {
-	svc := sqs.New(config)
+func createQueue(session *session.Session, queue string) (string, error) {
+	svc := sqs.New(session)
 
 	params := &sqs.CreateQueueInput{
 		QueueName: aws.String(queue),
@@ -180,8 +181,8 @@ func createQueue(config *aws.Config, queue string) (string, error) {
 	return *resp.QueueUrl, nil
 }
 
-func getMessage(config *aws.Config, queueURL string) (*sqs.Message, error) {
-	svc := sqs.New(config)
+func getMessage(session *session.Session, queueURL string) (*sqs.Message, error) {
+	svc := sqs.New(session)
 
 	params := &sqs.ReceiveMessageInput{
 		QueueUrl:            aws.String(queueURL),
@@ -200,8 +201,8 @@ func getMessage(config *aws.Config, queueURL string) (*sqs.Message, error) {
 	return resp.Messages[0], nil
 }
 
-func deleteMessage(config *aws.Config, queueURL string, receiptHandle string) error {
-	svc := sqs.New(config)
+func deleteMessage(session *session.Session, queueURL string, receiptHandle string) error {
+	svc := sqs.New(session)
 
 	params := &sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(queueURL),
