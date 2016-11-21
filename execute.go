@@ -51,22 +51,24 @@ func executeWithOutputChan(outputChan chan string, env []string, workingDir stri
 
 	var startErr error
 
-	var wg sync.WaitGroup
+	if outputChan != nil {
+		var wg sync.WaitGroup
 
-	outReader, orErr := cmd.StdoutPipe()
-	if orErr != nil {
-		return nil, fmt.Errorf("error capturing stdout: %v", orErr)
+		outReader, orErr := cmd.StdoutPipe()
+		if orErr != nil {
+			return nil, fmt.Errorf("error capturing stdout: %v", orErr)
+		}
+
+		errReader, erErr := cmd.StderrPipe()
+		if erErr != nil {
+			return nil, fmt.Errorf("error capturing stderr: %v", erErr)
+		}
+
+		wg.Add(2)
+		go sendLines(outReader, outputChan, &wg)
+		go sendLines(errReader, outputChan, &wg)
+		go closeAfterDone(outputChan, &wg)
 	}
-
-	errReader, erErr := cmd.StderrPipe()
-	if erErr != nil {
-		return nil, fmt.Errorf("error capturing stderr: %v", erErr)
-	}
-
-	wg.Add(2)
-	go sendLines(outReader, outputChan, &wg)
-	go sendLines(errReader, outputChan, &wg)
-	go closeAfterDone(outputChan, &wg)
 
 	startErr = cmd.Start()
 	if startErr != nil {
