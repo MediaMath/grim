@@ -9,11 +9,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-func getConfig(key, secret, region string) *aws.Config {
+func getSession(key, secret, region string) *session.Session {
 	creds := credentials.NewStaticCredentials(key, secret, "")
-	return &aws.Config{Credentials: creds, Region: &region}
+	return session.New(&aws.Config{Credentials: creds, Region: &region})
 }
 
 func getAccountIDFromARN(arn string) string {

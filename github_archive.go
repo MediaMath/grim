@@ -7,6 +7,7 @@ package grim
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"mime"
 	"os"
 	"os/exec"
@@ -16,12 +17,21 @@ import (
 )
 
 func cloneRepo(token string, workspacePath string, clonePath string, owner string, repo string, ref string, timeOut time.Duration) (string, error) {
+	log.Printf("downloading repo %v/%v@%v to %v with timeout %v", owner, repo, ref, workspacePath, timeOut)
 	archive, err := downloadRepo(token, owner, repo, ref, workspacePath)
 	if err != nil {
 		return "", err
 	}
 
-	return unarchiveRepo(archive, workspacePath, clonePath, timeOut)
+	log.Printf("download of repo %v/%v@%v to %v complete", owner, repo, ref, workspacePath)
+
+	log.Printf("unarchiving repo from %v to %v with timeout %v", archive, filepath.Join(workspacePath, clonePath), timeOut)
+	finalPath, err := unarchiveRepo(archive, workspacePath, clonePath, timeOut)
+	if err == nil {
+		log.Printf("unarchiving of repo from %v to %v complete", archive, finalPath)
+	}
+
+	return finalPath, err
 }
 
 func unarchiveRepo(file, workspacePath, clonePath string, timeOut time.Duration) (string, error) {
