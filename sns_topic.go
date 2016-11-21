@@ -18,7 +18,7 @@ func prepareSNSTopic(key, secret, region, topic string) (string, error) {
 	session := getSession(key, secret, region)
 
 	topicARN, err := findExistingTopicARN(session, topic)
-	if err != nil {
+	if err != nil || topicARN == "" {
 		topicARN, err = createTopic(session, topic)
 	}
 
@@ -122,7 +122,7 @@ func createTopic(session *session.Session, topic string) (string, error) {
 }
 
 func findExistingTopicARN(session *session.Session, topic string) (string, error) {
-	svc := sns.New(nil)
+	svc := sns.New(session)
 
 	params := &sns.ListTopicsInput{
 		NextToken: nil,
