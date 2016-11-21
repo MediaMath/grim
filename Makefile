@@ -14,7 +14,7 @@ ifndef REPOSITORY
 	REPOSITORY = libs-staging-global
 endif
 
-LDFLAGS = -ldflags "-X main.version $(VERSION)-$(BUILD_TIME)"
+LDFLAGS = -ldflags "-X main.version=$(VERSION)-$(BUILD_TIME)"
 
 ifdef VERBOSE
 	TEST_VERBOSITY=-v
