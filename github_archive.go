@@ -47,7 +47,7 @@ func unarchiveRepo(file, workspacePath, clonePath string, timeOut time.Duration)
 
 	//extracts the folder into the finalName directory pulling off the top level folder
 	//will break if github starts returning a different tar format
-	result, err := execute(nil, workspacePath, tarPath, timeOut, "-xvf", file, "-C", finalName, "--strip-components=1")
+	result, err := executeWithOutputChan(nil, nil, workspacePath, tarPath, timeOut, "-xvf", file, "-C", finalName, "--strip-components=1")
 
 	if err != nil {
 		return "", err
