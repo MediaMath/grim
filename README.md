@@ -1,4 +1,4 @@
-#Grim: Dead simple build server 
+# Grim: Dead simple build server
 
 Grim is the "GitHub Responder In MediaMath".  We liked the acronym and awkwardly filled in the details to fit it.  In short, it is a task runner that is triggered by GitHub push/pull request hooks that is intended as a much simpler and easy-to-use build server than the more modular alternatives (eg. Jenkins).
 
@@ -16,7 +16,7 @@ _An example including two repositories watched by three Grimd's (one in EC2 and 
 
 Each GitHub repo can push to exactly one SNS topic.  Multiple SQS queues can subscribe to one topic and multiple Grim instances can read from the same SQS queue.  If a Grim instance isn't configured to respond to the repo specified in the hook it silently ignores the event.
 
-##Installation
+## Installation
 
 ### 1. Get grimd
 
@@ -81,9 +81,9 @@ Grim will look for a build script first in the configuration directory for the r
 
 The environment variables available to this script are documented [here](#environment-variables).
 
-### Environment Variables 
+### Environment Variables
 ```
-CLONE_PATH= the path relative to the workspace the repo is cloned in 
+CLONE_PATH= the path relative to the workspace the repo is cloned in
 GH_EVENT_NAME= either 'push', 'pull_request' or '' (for manual builds)
 GH_ACTION= the sub action of a pull request (eg. 'opened', 'closed', or 'reopened', 'synchronize') or blank for other event types
 GH_USER_NAME= the user initiating the event

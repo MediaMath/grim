@@ -5,6 +5,7 @@ package grim
 // license that can be found in the LICENSE file.
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -149,7 +150,7 @@ func findExistingAmazonSNSHookID(client *github.Client, owner, repo string) (int
 	listOptions := github.ListOptions{Page: 1, PerPage: 100}
 
 	for {
-		hooks, res, err := client.Repositories.ListHooks(owner, repo, &listOptions)
+		hooks, res, err := client.Repositories.ListHooks(context.Background(), owner, repo, &listOptions)
 		if err != nil {
 			return 0, err
 		}
@@ -168,13 +169,13 @@ func findExistingAmazonSNSHookID(client *github.Client, owner, repo string) (int
 }
 
 func createAmazonSNSHook(client *github.Client, owner, repo, snsTopic, awsKey, awsSecret, awsRegion string) error {
-	hook, _, err := client.Repositories.CreateHook(owner, repo, githubAmazonSNSHookStruct(snsTopic, awsKey, awsSecret, awsRegion))
+	hook, _, err := client.Repositories.CreateHook(context.Background(), owner, repo, githubAmazonSNSHookStruct(snsTopic, awsKey, awsSecret, awsRegion))
 
 	return detectHookError(hook, err)
 }
 
 func editAmazonSNSHook(client *github.Client, owner, repo, snsTopic, awsKey, awsSecret, awsRegion string, hookID int) error {
-	hook, _, err := client.Repositories.EditHook(owner, repo, hookID, githubAmazonSNSHookStruct(snsTopic, awsKey, awsSecret, awsRegion))
+	hook, _, err := client.Repositories.EditHook(context.Background(), owner, repo, hookID, githubAmazonSNSHookStruct(snsTopic, awsKey, awsSecret, awsRegion))
 
 	return detectHookError(hook, err)
 }

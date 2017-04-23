@@ -5,6 +5,7 @@ package grim
 // license that can be found in the LICENSE file.
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -77,7 +78,7 @@ func downloadRepo(token, owner, repo, ref string, location string) (string, erro
 		return "", err
 	}
 
-	resp, err := client.Do(req, temp)
+	resp, err := client.Do(context.Background(), req, temp)
 	temp.Close()
 	if err != nil {
 		return "", err
