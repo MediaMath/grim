@@ -29,3 +29,5 @@ _testmain.go
 # Intellij
 *.iml
 .idea/
+
+vendor/*/

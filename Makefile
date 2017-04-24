@@ -22,15 +22,14 @@ else
 	TEST_VERBOSITY=
 endif
 
-grimd: 
-	go get ./...
+grimd: dep 
 	go build $(LDFLAGS) -o tmp/grimd github.com/MediaMath/grim/grimd
 
 tmp/grimd-$(VERSION).zip: grimd | tmp 
 	export PATH=$$PATH:$${GOPATH//://bin:}/bin; zip -r -j $@ tmp/grimd
 
-test:
-	go test $(TEST_VERBOSITY) ./...
+test: dep
+	govendor test +local $(TEST_VERBOSITY) 
 
 part: 
 	go get github.com/MediaMath/part
@@ -58,3 +57,11 @@ check: test
 
 ansible:
 	cd ansible && ansible-playbook -i inventory site.xml
+
+.PHONY: govendor
+govendor:
+	go get -u github.com/kardianos/govendor
+
+.PHONY:
+dep: govendor
+	govendor sync 
