@@ -6,6 +6,7 @@ package grim
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -78,35 +79,37 @@ func grimBuild(builder grimBuilder, resultPath, basename string) (*executeResult
 	}
 	defer status.Close()
 
+	statusLogger := log.New(status, "", log.Ldate|log.Ltime)
+
 	workspacePath, err := builder.PrepareWorkspace(basename)
 	if err != nil {
-		status.WriteString(fmt.Sprintf("failed to prepare workspace %s %v\n", workspacePath, err))
+		statusLogger.Printf("failed to prepare workspace %s %v\n", workspacePath, err)
 		return nil, workspacePath, fmt.Errorf("failed to prepare workspace: %v", err)
 	}
-	status.WriteString(fmt.Sprintf("workspace created %s\n", workspacePath))
+	statusLogger.Printf("workspace created %s\n", workspacePath)
 
 	buildScriptPath, err := builder.FindBuildScript(workspacePath)
 	if err != nil {
-		status.WriteString(fmt.Sprintf("%v\n", err))
+		statusLogger.Printf("%v\n", err)
 		return nil, workspacePath, err
 	}
-	status.WriteString(fmt.Sprintf("build script found %s\n", buildScriptPath))
+	statusLogger.Printf("build script found %s\n", buildScriptPath)
 
 	outputChan := make(chan string)
 	go writeOutput(resultPath, outputChan)
 
-	status.WriteString(fmt.Sprintf("build started ...\n"))
+	statusLogger.Println("build started ...")
 	result, err := builder.RunBuildScript(workspacePath, buildScriptPath, outputChan)
 	if err != nil {
-		status.WriteString(fmt.Sprintf("build error %v\n", err))
+		statusLogger.Printf("build error %v\n", err)
 		return nil, workspacePath, err
 	}
 
 	if result.ExitCode == 0 {
-		status.WriteString(fmt.Sprintf("build success\n"))
+		statusLogger.Println("build success")
 		os.RemoveAll(workspacePath)
 	} else {
-		status.WriteString(fmt.Sprintf("build failed %v\n", result.ExitCode))
+		statusLogger.Printf("build failed %v\n", result.ExitCode)
 	}
 
 	err = appendResult(resultPath, *result)
@@ -114,7 +117,7 @@ func grimBuild(builder grimBuilder, resultPath, basename string) (*executeResult
 		return result, workspacePath, fatalGrimErrorf("error while storing result: %v", err)
 	}
 
-	status.WriteString(fmt.Sprintf("build done\n"))
+	statusLogger.Println("build done")
 	return result, workspacePath, nil
 }
 

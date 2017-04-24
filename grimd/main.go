@@ -35,6 +35,10 @@ var (
 )
 
 func main() {
+	log.SetOutput(os.Stdout)
+	log.SetPrefix(fmt.Sprintf("grimd-%v ", version))
+	log.SetFlags(log.Ldate | log.Ltime)
+
 	app := cli.NewApp()
 
 	app.Action = grimd
