@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"text/template"
+	"time"
+
+	"github.com/google/go-github/github"
 )
 
 // Copyright 2015 MediaMath <http://www.mediamath.com>.  All rights reserved.
@@ -93,7 +96,8 @@ func notify(config localConfig, hook hookEvent, ws, logDir string, notification 
 		return nil
 	}
 
-	ghErr := setRefStatus(config.gitHubToken(), hook.Owner, hook.Repo, hook.StatusRef, notification.GithubRefStatus(), "", "")
+	repoStatus := createGithubRepoStatus(config.grimServerID(), notification.GithubRefStatus(), logDir)
+	ghErr := setRefStatus(config.gitHubToken(), hook.Owner, hook.Repo, hook.StatusRef, repoStatus)
 
 	context := buildContext(hook, ws, logDir)
 	message, color, err := notification.HipchatNotification(context, config)
@@ -123,4 +127,19 @@ func notify(config localConfig, hook hookEvent, ws, logDir string, notification 
 	}
 
 	return ghErr
+}
+
+func createGithubRepoStatus(serverID string, state refStatusState, logDir string) *github.RepoStatus {
+	stateStr := string(state)
+	description := fmt.Sprintf("%v - %v", logDir, time.Now().Format(time.RFC822))
+
+	if len(description) >= 1024 {
+		description = fmt.Sprintf("...%v", description[10:])
+	}
+
+	return &github.RepoStatus{
+		State:       &stateStr,
+		Description: &description,
+		Context:     &serverID,
+	}
 }

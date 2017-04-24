@@ -12,11 +12,10 @@ func TestSetRefStatusSucceeds(t *testing.T) {
 	owner := getEnvOrSkip(t, "SET_REF_STATUS_OWNER")
 	repo := getEnvOrSkip(t, "SET_REF_STATUS_REPO")
 	ref := getEnvOrSkip(t, "SET_REF_STATUS_REF")
-	status := RSSuccess
-	statusURL := "http://www.example.com"
-	description := "This is for testing integration with GitHub and is not necessarily accurate."
 
-	err := setRefStatus(token, owner, repo, ref, status, statusURL, description)
+	repoStatus := createGithubRepoStatus("grimd-integration-test", RSSuccess, "/var/log/grim/MediaMath/grim/1493041609875975645")
+
+	err := setRefStatus(token, owner, repo, ref, repoStatus)
 	if err != nil {
 		t.Fatal(err)
 	}
