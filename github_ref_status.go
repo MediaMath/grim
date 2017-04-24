@@ -21,14 +21,12 @@ const (
 	RSFailure refStatusState = "failure"
 )
 
-func setRefStatus(token, owner, repo, ref string, state refStatusState, statusURL string, description string) error {
+func setRefStatus(token, owner, repo, ref string, statusBefore *github.RepoStatus) error {
 	client, err := getClientForToken(token)
 	if err != nil {
 		return err
 	}
 
-	stateStr := string(state)
-	statusBefore := &github.RepoStatus{State: &stateStr, TargetURL: &statusURL, Description: &description}
 	repoStatus, res, err := client.Repositories.CreateStatus(context.Background(), owner, repo, ref, statusBefore)
 	if err != nil {
 		return err
