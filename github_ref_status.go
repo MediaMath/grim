@@ -5,6 +5,7 @@ package grim
 // license that can be found in the LICENSE file.
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/go-github/github"
@@ -28,7 +29,7 @@ func setRefStatus(token, owner, repo, ref string, state refStatusState, statusUR
 
 	stateStr := string(state)
 	statusBefore := &github.RepoStatus{State: &stateStr, TargetURL: &statusURL, Description: &description}
-	repoStatus, res, err := client.Repositories.CreateStatus(owner, repo, ref, statusBefore)
+	repoStatus, res, err := client.Repositories.CreateStatus(context.Background(), owner, repo, ref, statusBefore)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func getMergeCommitSha(token, owner, repo string, number int64) (string, error) 
 	}
 
 	pull := new(pullRequest)
-	_, err = client.Do(req, pull)
+	_, err = client.Do(context.Background(), req, pull)
 	if err != nil {
 		return "", err
 	}
