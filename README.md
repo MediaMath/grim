@@ -1,5 +1,7 @@
 # Grim: Dead simple build server
 
+**Deprecated** As of October 2018 grim relies on a github api call that no longer works.  We will not be upgrading the daemon to fix this. Please find a different solution to your build tool needs.
+
 Grim is the "GitHub Responder In MediaMath".  We liked the acronym and awkwardly filled in the details to fit it.  In short, it is a task runner that is triggered by GitHub push/pull request hooks that is intended as a much simpler and easy-to-use build server than the more modular alternatives (eg. Jenkins).
 
 On start up, Grim will:
